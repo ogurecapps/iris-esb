@@ -1,0 +1,195 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Inbox API",
+        "description": "With this API, you can send (and deserialize) any messages to your IRIS ESB",
+        "version": "1.0.0",
+        "contact": {
+            "name": "Andrew Sklyarov",
+            "url": "https://www.linkedin.com/in/andrey-sklyaroff",
+            "email": "iris79119760730@gmail.com"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "https://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+    },
+    "host": "localhost:52773",
+    "basePath": "/",
+    "schemes": [
+        "http"
+    ],
+    "consumes": [
+        "application/json"
+    ],
+    "produces": [
+        "application/json"
+    ],
+    "paths": {
+        "/v1/inbox": {
+            "post": {
+                "tags": [
+                    "Import"
+                ],
+                "operationId": "OnMessage",
+                "summary": "Import of any JSON to the ESB message (the type of message should be specified in the parameter)",
+                "description": "Any payload in JSON format can be put in the body of this method. It will be imported into the ESB message and put into the inbox queue. The type of message should be specified through the import_to parameter",
+                "parameters": [
+                    {
+                        "name": "import_to",
+                        "in": "query",
+                        "required": true,
+                        "type": "string",
+                        "description": "Type of message (class name) to import into the inbox queue"
+                    },
+                    {
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "description": "Only JSON allowed",
+                        "schema": {
+                            "type": "object",
+                            "example": {
+                                "CreatedAt": "2021-01-01T00:00:00.000Z",
+                                "OrderId": 1,
+                                "OrderStatus": "NEW",
+                                "Customer": {
+                                    "FirstName": "John",
+                                    "LastName": "Doe"
+                                },
+                                "Items": [
+                                    {
+                                        "ProductId": 1,
+                                        "ProductName": "Product 1",
+                                        "Quantity": 2
+                                    },
+                                    {
+                                        "ProductId": 2,
+                                        "ProductName": "Product 2",
+                                        "Quantity": 1
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful import",
+                        "schema": {
+                            "$ref": "#/definitions/SuccessResp"
+                        },
+                        "examples": {
+                            "application/json": {
+                                "success": true,
+                                "import_to": "Sample.Message.CustomerOrder.Order",
+                                "error_text": "",
+                                "session_id": "1234567890"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/FailResp"
+                        }
+                    }
+                }
+            }
+        },
+        "/healthcheck": {
+            "get": {
+                "summary": "Simple health check",
+                "description": "Every well-designed API must have a health check endpoint",
+                "operationId": "Ping",
+                "tags": [
+                    "System"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/FailResp"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "SuccessResp": {
+            "type": "object",
+            "properties": {
+                "success": {
+                    "type": "boolean"
+                },
+                "import_to": {
+                    "type": "string"
+                },
+                "error_text": {
+                    "type": "string"
+                },
+                "session_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "FailResp": {
+            "type": "object",
+            "properties": {
+                "errors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ErrorDetail"
+                    }
+                },
+                "summary": {
+                    "type": "string",
+                    "description": "Summary error message"
+                }
+            },
+            "required": [
+                "errors",
+                "summary"
+            ]
+        },
+        "ErrorDetail": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "format": "int32",
+                    "description": "Error code"
+                },
+                "domain": {
+                    "type": "string",
+                    "description": "Error domain or category"
+                },
+                "error": {
+                    "type": "string",
+                    "description": "Full error message"
+                },
+                "id": {
+                    "type": "string",
+                    "description": "Error identifier"
+                },
+                "params": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Additional parameters related to the error"
+                }
+            },
+            "required": [
+                "code",
+                "domain",
+                "error",
+                "id"
+            ]
+        }
+    }
+}
