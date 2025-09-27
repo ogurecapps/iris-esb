@@ -19,18 +19,20 @@ XData ProductionDefinition
   <Item Name="Sample.Process.CustomerOrderHandler" Category="" ClassName="Sample.Process.TestHandler" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="false" Schedule="">
     <Setting Target="Host" Name="AlertOnError">1</Setting>
   </Item>
-  <Item Name="Sample.Service.CustomerOrderConsumer" Category="" ClassName="Broker.Service.InboxReader" PoolSize="1" Enabled="false" Foreground="false" Comment="" LogTraceEvents="false" Schedule="">
+  <Item Name="Sample.Service.CustomerOrderConsumer" Category="" ClassName="Broker.Service.InboxReader" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="false" Schedule="">
     <Setting Target="Adapter" Name="MessageHandler">Sample.Process.CustomerOrderHandler</Setting>
     <Setting Target="Adapter" Name="MessageType">Sample.Message.CustomerOrder.Order</Setting>
   </Item>
-  <Item Name="Alert.Operation.LogFileNotifier" Category="" ClassName="Alert.Operation.LogFileNotifier" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="false" Schedule="">
+  <Item Name="Alert.Operation.LogFileNotifier" Category="" ClassName="Alert.Operation.LogFileNotifier" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="true" Schedule="">
     <Setting Target="Adapter" Name="FilePath">/tmp/</Setting>
   </Item>
   <Item Name="Ens.Alert" Category="" ClassName="Alert.Process.Router" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="false" Schedule="">
   </Item>
   <Item Name="Sample.Process.StringArrayHandler" Category="" ClassName="Sample.Process.TestHandler" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="false" Schedule="">
+    <Setting Target="Host" Name="AlertOnError">1</Setting>
+    <Setting Target="Host" Name="ThrowError">0</Setting>
   </Item>
-  <Item Name="Sample.Service.StringArrayConsumer" Category="" ClassName="Broker.Service.InboxReader" PoolSize="1" Enabled="false" Foreground="false" Comment="" LogTraceEvents="false" Schedule="">
+  <Item Name="Sample.Service.StringArrayConsumer" Category="" ClassName="Broker.Service.InboxReader" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="false" Schedule="">
     <Setting Target="Adapter" Name="MessageType">Sample.Message.SomeArray.Root</Setting>
     <Setting Target="Adapter" Name="MessageHandler">Sample.Process.StringArrayHandler</Setting>
   </Item>

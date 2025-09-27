@@ -3,7 +3,8 @@
 /// The process, with this name, will automatically collect all alerts from Production items for which raised flag "Alert on Error". 
 /// Next, you should fill Lookup Tables named by notifier types. 
 /// For example: Alert.Operation.EmailNotifier, Alert.Operation.SMSNotifier and so on (you can add your own notifier implementations to the Alert.Operation package). 
-/// For each of these tables, Key means the source of the exception (name of Production business host), Value means contact ID (e-mail address for EmailNotifier, for example).
+/// For each of these tables, Key means the source of the exception (name of Production business host), 
+/// Value means contact ID (e-mail address for EmailNotifier, for example), can be empty.
 Class Alert.Process.Router Extends Ens.BusinessProcess [ ClassType = persistent ]
 {
 
@@ -18,9 +19,8 @@ Method OnRequest(request As Ens.AlertRequest, Output response As Ens.Response) A
             Set source = $ORDER(^Ens.LookupTable(notifierType, source))  Quit:source=""
             Continue:source'=request.SourceConfigName
             Set contactId = $GET(^Ens.LookupTable(notifierType, source))
-            Continue:contactId=""
 
-            Set request.AlertDestination = notifierType_":"_contactId
+            Set request.AlertDestination = $SELECT(contactId="":notifierType, 1:notifierType_":"_contactId)
             Quit
         }
         Quit:request.AlertDestination'=""   // Alert will be forwarded to the first suitable for conditions subscriber 

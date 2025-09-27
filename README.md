@@ -6,13 +6,13 @@ I was surprised that a platform with such a rich integration toolset has no read
 4. Universal API to receive any message types (using payload container)
 5. Centralized monitoring and alerting control
 
-This project contains 3 main modules, let us take a look at them.
+This project contains three main modules, let us take a look at them.
 ## Message Broker
 Message Broker is designed to keep messages and create separate message consumers, each of which can be independently subscribed to a message queue. It means all consumers have their own inbound queue by message type. Messages have statuses: `NEW`, `PENDING` (processing in progress), `ERROR`, and `OK` (message successfully processed). The main purpose of the Message Broker is to guarantee delivery. The message will be resending again and again until one of two events happens: successful message processing or the end of message lifetime (message expired).
 
-Here uses a bit improved version of the Kafka algorithm. Kafka keeps the offset of the last processed message for moving forward on the message queue. In IRIS ESB, we keep all processed message IDs, which allows us not to stop consuming when we have some "troubled" messages in the queue. 
+IRIS ESB uses a bit improved version of the Kafka algorithm. Kafka keeps the offset of the last processed message for moving forward on the message queue. Here, we keep all processed message IDs, which allows us not to stop consuming when we have some "troubled" messages in the queue. 
 
-I have not used an external broker, as the same Kafka, for not to lose the coolest IRIS feature - possible to see all that happens with the messages in visual traces. I believe one of the most important features of the ESB design pattern it's message guarantee delivery (based on retries), and possible to restore data flows after the temporary unavailability of external systems without manual actions. Kafka has no these features also.
+I have not used an external broker, as the same Kafka, for not to lose the coolest IRIS feature - possible to see all that happens with the messages in visual traces. I believe one of the most important features of the ESB design pattern it's message guarantee delivery (based on retries), and possible to restore data flows after the temporary unavailability of external systems without manual actions. In Kafka, it is not about guaranteed delivery either.
 ### How to add data flow in Message Broker? 
 
 First of all, your Production must have a `Broker.Process.MessageRouter` business host. He is responsible for routing messages to handlers and setting message statuses. Just add `MessageRouter` to Production, no need for any additional settings here. It will be common for all data flows.
@@ -23,16 +23,63 @@ Finally, create a consumer. It is a business service instance of `Broker.Service
 
 - `MessageHandler` - you hadler from the previous section
 - `MessageType` - on what kind of message we wanna subscribe? It is a full analogy topic on Kafka
-- `MessageLifetime` - when the message will expire? Can be different for each customer
+- `MessageLifetime` - when the message will expire? Can be different for each consumer
 ## Inbox REST API
 Each ESB should have a universal way to receive messages from external systems. Here it's a REST API. Universal means you can send any JSON payload to this API. The received JSON text will be deserialized into the Cache class and placed in the Inbox queue. IRIS ESB works with class objects, not `%DynamicObject`, for example, becouse validation of messages is one more important feature of the ESB pattern.
 
 So, to add a new custom message type, you need to create a class (or import from some schema) that extends `Inbox.Message.Inbound` describes the structure of your message (see samples in `Sample.Message.*` package). When you send a message to the Inbox API, set the name of this class as the `import_to` parameter. Also, you should use the same class name for creating a consumer on the IRIS side.
+### Inbox API testing
+There are three endpoints for this API:
+- `GET http://localhost:52773/csp/rest/swagger` - online version of the OpenAPI specification (some call it Swagger)
+- `GET http://localhost:52773/csp/rest/healthcheck` - just a simple healthcheck, should return 200 OK if all set up right
+- `POST http://localhost:52773/csp/rest/v1/inbox` - put new message into ESB
+
+To put into the ESB a new sample of "Customer Order", you need to do the following request via CURL or Postman:
+```
+curl --location 'http://localhost:52773/csp/rest/v1/inbox?import_to=Sample.Message.CustomerOrder.Order' \
+--header 'Content-Type: application/json' \
+--data '{
+    "CreatedAt": "2021-01-01T00:00:00.000Z",
+    "OrderId": 1,
+    "OrderStatus": "NEW",
+    "Customer": {
+        "FirstName": "John",
+        "LastName": "Doe"
+    },
+    "Items": [
+        {
+            "ProductId": 1,
+            "ProductName": "Product 1",
+            "Quantity": 2
+        },
+        {
+            "ProductId": 2,
+            "ProductName": "Product 2",
+            "Quantity": 1
+        }
+    ]
+}'
+```
+And one more sample for "Array of Strings" message:
+```
+curl --location 'http://localhost:52773/csp/rest/v1/inbox?import_to=Sample.Message.SomeArray.Root' \
+--header 'Content-Type: application/json' \
+--data '[
+    "111",
+    "222",
+    "333"
+]'
+```
+Visual traces for these requests can be seen in the messages of the `Inbox.Service.API` business service. Check:  Interoperability > Production Configuration  - (Production.Main).
+
+In Production, configured two test consumers, one for "Customer Order" and the other for "Array of Strings" message types. After messages are received by the Inbox API, you can see that them was processed in the `Sample.Service.CustomerOrderConsumer` and `Sample.Service.StringArrayConsumer` services. 
 ## Alerting
 Here we have a flexible alerting module to set up subscriptions and ways to deliver alerts when something goes wrong in our data flows.
 ### How alerting works
-You should create a process in the Production based on `Alert.Process.Router` class and call it `Ens.Alert`. The process, with this name, will automatically collect all alerts from Production items for which raised flag `Alert on Error`. It is the default way described in the documentation [here](https://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=EGDV_alerts#EGDV_alerts_scenario3).
+You should create a process in the Production based on `Alert.Process.Router` class and call it `Ens.Alert`. The process, with this name, will automatically collect all alerts from Production items for which raised flag `Alert on Error`. It is the default way to create an alert processor, described in the documentation [here](https://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=EGDV_alerts#EGDV_alerts_scenario3).
 
 Next, you need to fill `Lookup Tables` named by notifier types. For example, table names can be like `Alert.Operation.EmailNotifier`, `Alert.Operation.SMSNotifier` and so on (you can add your own notifier implementations to the `Alert.Operation.*` package). It should be the names of Production config items. But I strongly recommend using class names for Production item names always when it is possible.
 
-For each of these tables, `Key` means the source of the exception (name of Production business host), `Value` means contact ID (e-mail address for `EmailNotifier`, for example).
+For each of these tables, `Key` means the source of the exception (name of Production business host), `Value` means contact ID (e-mail address for EmailNotifier, for example), can be empty. 
+
+For testing alerts, you can just raise the `ThrowError` flag in some of the test handlers. In Production, already set up `LogFileNotifier`, so alerts will be written to `/tmp/alerts.log` file.

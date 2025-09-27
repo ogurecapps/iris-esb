@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<lookupTable>
+<entry table="Alert.Operation.LogFileNotifier" key="Sample.Process.CustomerOrderHandler"></entry>
+<entry table="Alert.Operation.LogFileNotifier" key="Sample.Process.StringArrayHandler"></entry>
+</lookupTable>
