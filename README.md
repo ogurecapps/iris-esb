@@ -31,7 +31,7 @@ So, to add a new custom message type, you need to create a class (or import from
 ## Alerting
 Here we have a flexible alerting module to set up subscriptions and ways to deliver alerts when something goes wrong in our data flows.
 ### How alerting works
-You should create a process in the Production based on `Alert.Process.Router` class and call it `Ens.Alert`. The process, with this name, will automatically collect all alerts from Production items for which raised flag `Alert on Error`. It is the default way described in the documentation here.
+You should create a process in the Production based on `Alert.Process.Router` class and call it `Ens.Alert`. The process, with this name, will automatically collect all alerts from Production items for which raised flag `Alert on Error`. It is the default way described in the documentation [here](https://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=EGDV_alerts#EGDV_alerts_scenario3).
 
 Next, you need to fill `Lookup Tables` named by notifier types. For example, table names can be like `Alert.Operation.EmailNotifier`, `Alert.Operation.SMSNotifier` and so on (you can add your own notifier implementations to the `Alert.Operation.*` package). It should be the names of Production config items. But I strongly recommend using class names for Production item names always when it is possible.
 
