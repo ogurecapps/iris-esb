@@ -49,12 +49,10 @@ Method SensorsByConsumer() As %Status
         Set ok = rset.%Get("ok")
         Set error = rset.%Get("error")
         Set pending = rset.%Get("pending")
-        Set retries = rset.%Get("retries")
 
         Do ..SetSensor("success_messages_consumer", ok, consumer)
         Do ..SetSensor("failed_messages_consumer", error, consumer)
         Do ..SetSensor("pending_messages_consumer", pending, consumer)
-        Do ..SetSensor("retries_messages_consumer", retries, consumer)
     }
 
     Quit $$$OK
