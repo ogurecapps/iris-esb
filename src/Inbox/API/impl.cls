@@ -1,6 +1,6 @@
 /// With this API, you can send (and deserialize) any messages to your IRIS ESB<br/>
 /// Business logic class defined by OpenAPI in Inbox.API.spec<br/>
-/// Created Sep 23, 2025 10:56:25
+/// Updated Oct 1, 2025 11:13:24
 Class Inbox.API.impl Extends %REST.Impl [ ProcedureBlock ]
 {
 
@@ -14,6 +14,16 @@ Parameter ExposeServerExceptions = 0;
 ClassMethod OnMessage(importto As %String, payload As %DynamicObject) As %DynamicObject
 {
     Quit ##class(Inbox.Service.API).Call(importto, payload)
+}
+
+/// Every well-designed API must have a health check endpoint
+ClassMethod Ping() As %DynamicObject
+{
+    Do ..%SetStatusCode(##class(%CSP.REST).#HTTP200OK)
+    Do ..%SetContentType("application/json")
+    Do ..%WriteResponse({"message": ($$$FormatText("Server time: %1", $ZDATETIME($HOROLOG,3)))}.%ToJSON())
+
+    Quit $$$OK
 }
 
 }
