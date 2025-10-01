@@ -26,7 +26,7 @@ Finally, create a consumer. It is a business service instance of `Broker.Service
 - `MessageType` - on what kind of message we wanna subscribe? It is a full analogy topic in the Kafka
 - `MessageLifetime` - when the message will expire? Can be different for each consumer
 ## Inbox REST API
-Each ESB should have a universal way to receive messages from external systems. Here it's a REST API. Universal means you can send any JSON payload to this API. The received JSON text will be deserialized into the Cache class and placed in the Inbox queue. IRIS ESB works with class objects, not `%DynamicObject`, for example, becouse validation of messages is one more important feature of the ESB pattern.
+Each ESB should have a universal way to receive messages from external systems. Here it's a REST API. Universal means you can send any JSON payload to this API. The received JSON text will be deserialized into the Cache class and placed in the Inbox queue. IRIS ESB works with class objects, not `%DynamicObject`, for example, becouse validation of messages is one more important feature of the ESB pattern. And importing JSON text to the class, I believe, is the best way for it.
 
 So, to add a new custom message type, you need to create a class (or import it from some schema) that extends `Inbox.Message.Inbound` and describes the structure of your message (see samples in `Sample.Message.*` package). When you send a message to the Inbox API, set the name of this class as the `import_to` parameter.
 ### Inbox API testing
@@ -88,8 +88,12 @@ During message processing, IRIS ESB collects various metrics, including performa
 
 These metrics are published via API (see `GET http://localhost:9092/api/monitor/metrics` endpoint), collected by [Prometheus](https://prometheus.io), and visualised by [Grafana](https://grafana.com). Added custom metrics have a tag `esb_broker`.
 ## Try it
+You should have installed [Docker Desktop](https://www.docker.com/products/docker-desktop) and [Git](https://git-scm.com) on your local PC. Clone the repository and run Docker containers:
 ```
 git clone https://github.com/ogurecapps/iris-esb.git
 cd iris-esb
 docker-compose up -d
 ```
+Interoperability Production will be available on the URL (use default credentials `_system` `SYS` for login): `http://localhost:9092/csp/esb/EnsPortal.ProductionConfig.zen?$NAMESPACE=ESB`
+
+Send test messages as described in the [Inbox API testing](#inbox-api-testing) section. You can see traces of receiving messages in the `Inbox.Service.API` and traces of processing messages in the `Sample.Service.CustomerOrderConsumer`.
