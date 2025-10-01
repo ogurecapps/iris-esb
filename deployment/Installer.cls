@@ -8,31 +8,18 @@ XData Install [ XMLNamespace = INSTALLER ]
 	<Default Name="DBNAME" Value="${NAMESPACE}"/>
 	<Default Name="SOURCESPATH" Dir="#{$system.Process.CurrentDirectory()}src"/>
 	<Default Name="RESOURCE" Value="%DB_%DEFAULT"/>
-    <Default Name="INBOXAPI" Value="/csp/rest"/>
     <Default Name="PROD" Value="Production.Main"/>
-    <Default Name="APIROLE" Value="%All"/>
-    <Default Name="APIDISP" Value="Inbox.API.disp"/>
 
 	<Namespace Name="${NAMESPACE}" Code="${DBNAME}" Data="${DBNAME}" Create="yes" Ensemble="1">
 		<Configuration>
 			<Database Name="${DBNAME}" Dir="${MGRDIR}${DBNAME}" Create="yes" Resource="${RESOURCE}"/>
 		</Configuration>
-        <CSPApplication 
-            Url="${INBOXAPI}"
-            Recurse="1"
-            Directory="${INBOXAPI}" 
-            Grant="${APIROLE}"
-            AuthenticationMethods="64"
-        />
+
 		<Import File="${SOURCESPATH}" Flags="ck" Recurse="1"/>
         <Production Name="${PROD}" AutoStart="1"/>
 	</Namespace>
 
-    <Invoke Class="App.Installer" Method="SetDispatchClass" CheckStatus="true">
-        <Arg Value="${INBOXAPI}"/>
-        <Arg Value="${APIDISP}"/>
-    </Invoke>
-    
+    <Invoke Class="App.Installer" Method="BuildWebApp" CheckStatus="true"/>
     <Invoke Class="App.Installer" Method="EnableSensors" CheckStatus="true"/>
 </Manifest>
 }
@@ -42,16 +29,18 @@ ClassMethod Setup(ByRef pVars, pLogLevel As %Integer = 3, pInstaller As %Install
     Quit ##class(%Installer.Manifest).%Generate(%compiledclass, %code, "Install")
 }
 
-ClassMethod SetDispatchClass(pApp As %String, pClass As %String) As %Status
+ClassMethod BuildWebApp() As %Status
 {
     New $NAMESPACE
     Set $NAMESPACE = "%SYS"
     
-    Set tSC = ##class(Security.Applications).Get(pApp, .webProperties)
-    Quit:$$$ISERR(tSC) tSC
-  
-    Set webProperties("DispatchClass") = pClass
-    Quit ##class(Security.Applications).Modify(pApp, .webProperties)
+    Set webProperties("DispatchClass") = "Inbox.API.disp"
+    Set webProperties("NameSpace") = "ESB"
+    Set webProperties("Enabled") = 1
+    Set webProperties("AutheEnabled") = 64
+    Set webProperties("MatchRoles") = ":%All"
+
+    Quit ##class(Security.Applications).Create("/csp/rest", .webProperties)
 }
 
 ClassMethod EnableSensors() As %Status
