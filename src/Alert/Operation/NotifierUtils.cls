@@ -3,7 +3,7 @@ Class Alert.Operation.NotifierUtils Extends Ens.BusinessOperation
 
 Property Server As %String [ InitialExpression = "localhost" ];
 
-Property Port As %Integer [ InitialExpression = 52773 ];
+Property Port As %Integer [ InitialExpression = 9092 ];
 
 Property SSL As %Boolean;
 

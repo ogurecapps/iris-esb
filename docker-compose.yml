@@ -1,0 +1,10 @@
+services:
+  iris:
+    container_name: iris-esb
+    build:
+      context: . 
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - 9092:52773  # Management Portal / REST API
+      - 9091:1972   # SuperServer port
