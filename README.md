@@ -8,7 +8,7 @@ I was surprised that a platform with such a rich integration toolset has no read
 5. Centralized monitoring and alerting control
 
 This project contains three main modules, let us take a look at them.
-## Message Broker
+## Message Broker (Broker.*)
 Message Broker is designed to keep messages and create separate message consumers, each of which can be independently subscribed to a message queue. It means all consumers have their own inbound queue by message type (not literally). Messages have statuses: `NEW`, `PENDING` (processing in progress), `ERROR`, and `OK` (message successfully processed). The main function of this Message Broker is to guarantee the delivery of messages. The message will be resending again and again until one of two events happens: successful message processing or the end of message lifetime (message expired).
 
 IRIS ESB uses a bit improved version of the Kafka algorithm. Kafka keeps the offset of the last processed message for moving forward on the message queue. Here, we keep all processed message IDs, which allows us not to stop consuming when we have some "troubled" messages in the queue. So, IRIS ESB can restore data flows after the temporary unavailability (or if we got some "bad data") of external systems without manual actions.
@@ -25,7 +25,7 @@ Finally, create a consumer. It is a business service instance of `Broker.Service
 - `MessageHandler` - your handler above
 - `MessageType` - on what kind of message we wanna subscribe? It is a full analogy topic in the Kafka
 - `MessageLifetime` - when the message will expire? Can be different for each consumer
-## Inbox REST API
+## Inbox REST API (Inbox.*)
 Each ESB should have a universal way to receive messages from external systems. Here it's a REST API. Universal means you can send any JSON payload to this API. The received JSON text will be deserialized into the Cache class and placed in the Inbox queue. IRIS ESB works with class objects, not `%DynamicObject`, for example, becouse validation of messages is one more important feature of the ESB pattern. And importing JSON text to the class, I believe, is the best way for it.
 
 So, to add a new custom message type, you need to create a class (or import it from some schema) that extends `Inbox.Message.Inbound` and describes the structure of your message (see samples in `Sample.Message.*` package). When you send a message to the Inbox API, set the name of this class as the `import_to` parameter.
@@ -73,7 +73,7 @@ curl --location 'http://localhost:9092/csp/rest/v1/inbox?import_to=Sample.Messag
 Visual traces for these requests can be seen in the messages of the `Inbox.Service.API` business service. Check: *Interoperability > Production Configuration  - (Production.Main).*
 
 In Production, configured two test consumers, one for "Customer Order" and the other for "Array of Strings" message types. After messages are received by the Inbox API, you can see that them was processed in the `Sample.Service.CustomerOrderConsumer` or `Sample.Service.StringArrayConsumer` services. 
-## Monitoring and Alerting
+## Monitoring and Alerting (Alert.*)
 In IRIS ESB, we have a flexible alerting module to set up subscriptions and ways to deliver alerts when something goes wrong in our data flows.
 ### How alerting works
 You should create a process in the Production based on `Alert.Process.Router` class and call it `Ens.Alert`. The process, with this name, will automatically collect all alerts from Production items for which raised flag `Alert on Error`. It is the default way to create an alert processor, described in the documentation [here](https://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=EGDV_alerts#EGDV_alerts_scenario3).

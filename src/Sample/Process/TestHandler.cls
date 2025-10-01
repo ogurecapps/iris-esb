@@ -1,4 +1,4 @@
-/// Processing of customer orders (sample)
+/// Processing of messages
 Class Sample.Process.TestHandler Extends Broker.Process.MessageHandler
 {
 
