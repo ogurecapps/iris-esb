@@ -86,7 +86,9 @@ For testing alerts, you can just raise the `ThrowError` flag in one of the test 
 ### Metrics
 During message processing, IRIS ESB collects various metrics, including performance sensors such as the minimum, maximum, and average time of message processing (by consumers). Additionally, collecting statistics by message status: `OK`, `ERROR`, and `PENDING` counters.
 
-These metrics are published via API (see `GET http://localhost:9092/api/monitor/metrics` endpoint), collected by [Prometheus](https://prometheus.io), and visualised by [Grafana](https://grafana.com). Added custom metrics have a tag `esb_broker`.
+These metrics are published via API (see `GET http://localhost:9092/api/monitor/metrics` endpoint), collected by [Prometheus](https://prometheus.io), and visualised by [Grafana](https://grafana.com). Added custom metrics have a tag `esb_broker`. Web UI for these applications is available at: 
+- `http://localhost:9090` - Prometheus
+- `http://localhost:3000` - Grafana
 ## Try it
 You should have installed [Docker Desktop](https://www.docker.com/products/docker-desktop) and [Git](https://git-scm.com) on your local PC. Clone the repository and run Docker containers:
 ```

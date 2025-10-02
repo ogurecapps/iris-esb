@@ -20,6 +20,7 @@ XData Install [ XMLNamespace = INSTALLER ]
 	</Namespace>
 
     <Invoke Class="App.Installer" Method="BuildWebApp" CheckStatus="true"/>
+    <Invoke Class="App.Installer" Method="EscalateMonitoringPriv" CheckStatus="true"/>
     <Invoke Class="App.Installer" Method="EnableSensors" CheckStatus="true"/>
     <Invoke Class="App.Installer" Method="PutNotifierDefaults" CheckStatus="true"/>
 </Manifest>
@@ -44,6 +45,23 @@ ClassMethod BuildWebApp() As %Status
     Quit ##class(Security.Applications).Create("/csp/rest", .webProperties)
 }
 
+/// Somehow, custom sensors don't wanna add to the metrics API without %All privileges
+ClassMethod EscalateMonitoringPriv() As %Status
+{
+    New $NAMESPACE
+    Set $NAMESPACE = "%SYS"
+
+    Set tSC = $$$OK
+    Set appName = "/api/monitor"
+
+    If ##class(Security.Applications).Exists(appName) {
+        Set webProperties("MatchRoles") = ":%All"
+        Set tSC = ##class(Security.Applications).Modify(appName, .webProperties)
+    }
+
+    Quit tSC
+}
+
 ClassMethod EnableSensors() As %Status
 {
     New $NAMESPACE
@@ -57,9 +75,10 @@ ClassMethod PutNotifierDefaults() As %Status
     New $NAMESPACE
     Set $NAMESPACE = "ESB"
 
-    Set tSC = ##class(Ens.Util.LookupTable).%UpdateValue("Alert.Operation.LogFileNotifier", "Sample.Process.CustomerOrderHandler")
-    Quit:$$$ISERR(tSC) tSC
-    Quit ##class(Ens.Util.LookupTable).%UpdateValue("Alert.Operation.LogFileNotifier", "Sample.Process.StringArrayHandler")
+    Do ##class(Ens.Util.LookupTable).%UpdateValue("Alert.Operation.LogFileNotifier", "Sample.Process.CustomerOrderHandler")
+    Do ##class(Ens.Util.LookupTable).%UpdateValue("Alert.Operation.LogFileNotifier", "Sample.Process.StringArrayHandler")
+
+    Quit $$$OK
 }
 
 }
