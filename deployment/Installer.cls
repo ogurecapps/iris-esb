@@ -21,6 +21,7 @@ XData Install [ XMLNamespace = INSTALLER ]
 
     <Invoke Class="App.Installer" Method="BuildWebApp" CheckStatus="true"/>
     <Invoke Class="App.Installer" Method="EnableSensors" CheckStatus="true"/>
+    <Invoke Class="App.Installer" Method="PutNotifierDefaults" CheckStatus="true"/>
 </Manifest>
 }
 
@@ -49,6 +50,16 @@ ClassMethod EnableSensors() As %Status
     Set $NAMESPACE = "%SYS"
 
     Quit ##class(SYS.Monitor.SAM.Config).AddApplicationClass("Broker.Monitor.Metrics", "ESB")
+}
+
+ClassMethod PutNotifierDefaults() As %Status
+{
+    New $NAMESPACE
+    Set $NAMESPACE = "ESB"
+
+    Set tSC = ##class(Ens.Util.LookupTable).%UpdateValue("Alert.Operation.LogFileNotifier", "Sample.Process.CustomerOrderHandler")
+    Quit:$$$ISERR(tSC) tSC
+    Quit ##class(Ens.Util.LookupTable).%UpdateValue("Alert.Operation.LogFileNotifier", "Sample.Process.StringArrayHandler")
 }
 
 }
