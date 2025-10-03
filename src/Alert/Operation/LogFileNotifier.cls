@@ -6,7 +6,7 @@ Parameter INVOCATION = "Queue";
 
 Property FileName As %String(MAXLEN = 100) [ InitialExpression = "alerts.log" ];
 
-Property MessageTag As %String(MAXLEN = 100) [ InitialExpression = {"["_$NAMESPACE_"]"} ];
+Property MessageTag As %String(MAXLEN = 100) [ InitialExpression = {$NAMESPACE} ];
 
 Property Delimiter As %String [ InitialExpression = " | " ];
 
