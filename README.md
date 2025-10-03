@@ -7,11 +7,11 @@ I was surprised that a platform with such a rich integration toolset has no read
 4. Flexible API to receive any message types (using payload container)
 5. Centralized monitoring and alerting control
 
-This project contains three main modules, let us take a look at them.
+This project contains three main modules. Let us take a look at them.
 ## Message Broker (Broker.*)
 Message Broker is designed to keep messages and create separate message consumers, each of which can be independently subscribed to a message queue. It means all consumers have their own inbound queue by message type (not literally). Messages have statuses: `NEW`, `PENDING` (processing in progress), `ERROR`, and `OK` (message successfully processed). The main function of this Message Broker is to guarantee the delivery of messages. The message will be resending again and again until one of two events happens: successful message processing or the end of message lifetime (message expired).
 
-IRIS ESB uses a bit improved version of the Kafka algorithm. Kafka keeps the offset of the last processed message for moving forward on the message queue. Here, we keep all processed message IDs, which allows us not to stop consuming when we have some "troubled" messages in the queue. So, IRIS ESB can restore data flows after the temporary unavailability (or if we got some "bad data") of external systems without manual actions.
+IRIS ESB uses a slightly improved version of the Kafka algorithm. Kafka maintains the offset of the last processed message to facilitate moving forward on the message queue. Here, we keep all processed message IDs, which allows us not to stop consuming when we have some "troubled" messages in the queue. So, IRIS ESB can restore data flows after the temporary unavailability (or if we got some "bad data") of external systems without manual actions.
 
 I have not used an external broker, as the same Kafka, for not to lose the coolest IRIS feature - possible to see all that happens with the messages in visual traces. Also, Kafka does not have a message guarantee delivery (usually it is based on retries) out of the box.
 ### How to add data flow in Message Broker? 
@@ -31,7 +31,7 @@ Each ESB should have a universal way to receive messages from external systems. 
 So, to add a new custom message type, you need to create a class (or import it from some schema) that extends `Inbox.Message.Inbound` and describes the structure of your message (see samples in `Sample.Message.*` package). When you send a message to the Inbox API, set the name of this class as the `import_to` parameter.
 ### Inbox API testing
 There are two endpoints for this API:
-- `GET http://localhost:9092/csp/rest/healthcheck` - just a simple healthcheck, should return 200 OK if all set up right way
+- `GET http://localhost:9092/csp/rest/healthcheck` - just a simple healthcheck. Should return `200 OK` if all is set up the right way
 - `POST http://localhost:9092/csp/rest/v1/inbox` - put new message into ESB
 
 To put into the ESB a new sample of "Customer Order", you need to do the following request via CURL or Postman:
@@ -78,7 +78,7 @@ In IRIS ESB, we have a flexible alerting module to set up subscriptions and ways
 ### How alerting works
 You should create a process in the Production based on `Alert.Process.Router` class and call it `Ens.Alert`. The process, with this name, will automatically collect all alerts from Production items for which raised flag `Alert on Error`. It is the default way to create an alert processor, described in the documentation [here](https://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=EGDV_alerts#EGDV_alerts_scenario3).
 
-Next, you need to fill `Lookup Tables` named by notifier types. For example, table names can be like `Alert.Operation.EmailNotifier`, `Alert.Operation.SMSNotifier` and so on (you can add your own notifier implementations to the `Alert.Operation.*` package). It should be the names of Production config items. But I strongly recommend just using class names for Production item names, always when it is possible.
+Next, you need to fill `Lookup Tables` named by notifier types. For example, table names can be like `Alert.Operation.EmailNotifier`, `Alert.Operation.SMSNotifier`, and so on (you can add your own notifier implementations to the `Alert.Operation.*` package). It should be the names of Production config items. But I strongly recommend just using class names for Production item names, always when it is possible.
 
 For each of these tables, `Key` means the source of the exception (name of Production business host). `Value` means contact ID (e-mail address for EmailNotifier, for example). `Value` can be empty when we use the notifier without forwarding the alert to a specific address.
 
