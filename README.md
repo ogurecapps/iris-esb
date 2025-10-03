@@ -99,3 +99,7 @@ docker-compose up -d
 Interoperability Production will be available on the URL (use default credentials `_system` `SYS` for login): `http://localhost:9092/csp/esb/EnsPortal.ProductionConfig.zen?$NAMESPACE=ESB`
 
 Send test messages as described in the [Inbox API testing](#inbox-api-testing) section. You can see traces of receiving messages in the `Inbox.Service.API` and traces of processing messages in the `Sample.Service.CustomerOrderConsumer`.
+
+Open Grafana at `http://localhost:3000` (default credentials are `admin` `admin`). Add a data source: choose Prometheus as data source type and enter Server URL as `http://host.docker.internal:9090`. Add dashboard: select *New > Import* and take a ready-to-use JSON from [this](https://community.intersystems.com/post/monitoring-intersystems-iris-prometheus-and-grafana) Developer Community article, for example.
+
+Enjoy! Now you have an ESB with API and monitoring. Now it remains only to add your own message types and data flow implementations.

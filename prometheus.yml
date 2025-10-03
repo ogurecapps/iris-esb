@@ -3,4 +3,4 @@ scrape_configs:
     metrics_path: "/api/monitor/metrics"
     scrape_interval: 5s
     static_configs:
-      - targets: ["localhost:9092"]
+      - targets: ["host.docker.internal:9092"]
