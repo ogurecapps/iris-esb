@@ -106,4 +106,6 @@ Open Grafana at `http://localhost:3000` (default credentials: `admin` `admin`).
 1. Add a data source: choose Prometheus as data source type and enter Server URL as `http://host.docker.internal:9090`. 
 2. Add dashboard: select *New > Import* and take a ready-to-use dashboard JSON config file from this [this](https://community.intersystems.com/post/monitoring-intersystems-iris-prometheus-and-grafana) Developer Community article, for example.
 ## Conclusion
-Enjoy! Now you have an ESB with API and monitoring. Now it remains only to add your own message types and data flow implementations. Feel free to fork, rate my repo, and ask any questions in the related [Dev Community article](https://community.intersystems.com/post/why-does-intersystems-have-no-out-box-esb-solution-let%E2%80%99s-try-fix-it).
+Enjoy! Now you have an ESB with API and monitoring. It remains only to add your own message types and data flow implementations :smirk: 
+
+Feel free to fork, rate my repo, and ask any questions in the related [Dev Community article](https://community.intersystems.com/post/why-does-intersystems-have-no-out-box-esb-solution-let%E2%80%99s-try-fix-it).
