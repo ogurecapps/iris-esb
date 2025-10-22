@@ -36,6 +36,13 @@ XData ProductionDefinition
     <Setting Target="Adapter" Name="MessageType">Sample.Message.SomeArray.Root</Setting>
     <Setting Target="Adapter" Name="MessageHandler">Sample.Process.StringArrayHandler</Setting>
   </Item>
+  <Item Name="Broker.Process.Purge" Category="" ClassName="Broker.Process.Purge" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="false" Schedule="">
+    <Setting Target="Host" Name="Namespaces">ESB</Setting>
+  </Item>
+  <Item Name="Broker.Service.Purge" Category="" ClassName="Broker.Service.Job" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="false" Schedule="">
+    <Setting Target="Host" Name="TargetConfigNames">Broker.Process.Purge</Setting>
+    <Setting Target="Adapter" Name="CallInterval">86400</Setting>
+  </Item>
 </Production>
 }
 
