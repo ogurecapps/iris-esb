@@ -1,6 +1,6 @@
 /// Receives messages from connected Inbox readers (you can add a few routers in Production)
-/// Marks messages as PENDING
-/// Marks messages after processing by request.MessageHandler 
+/// Marks messages as PENDING (moved to the service to prevent double message reading in case we have no free actors in the router)
+/// Marks messages as OK/ERROR after processing by MessageHandler 
 Class Broker.Process.MessageRouter Extends (Ens.BusinessProcess, Broker.Message.Status) [ ClassType = persistent ]
 {
 
@@ -12,9 +12,6 @@ Method OnRequest(request As Broker.Message.InboxRequest, Output response As Ens.
 {
     Set req = $CLASSMETHOD(request.PayloadType, "%OpenId", request.PayloadId)
     Quit:'$ISOBJECT(req) $$$ERROR($$$GeneralError, $$$FormatText("OpenId failed. Classname = '%1', Id = '%2'", request.PayloadType, request.PayloadId))
-
-    Set sc = ##class(Broker.Storage.Processed).SetMessageStatus(request.InboxId, request.MessageHandler, ..%SessionId, ..#PENDING)
-    Quit:$$$ISERR(sc) sc
 
     If ..CollectPerformance {
         Set sc = ##class(Broker.Storage.Performance).OnRequest(request.InboxId, request.MessageHandler)

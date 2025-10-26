@@ -1,7 +1,7 @@
 /// This class is a main worker for all services that consume
 /// messages from the Inbox. Once message of a type specified in
 /// adapter settings comes in it's being sent to the message router.
-Class Broker.Service.InboxReader Extends Ens.BusinessService
+Class Broker.Service.InboxReader Extends (Ens.BusinessService, Broker.Message.Status)
 {
 
 Property Adapter As Broker.Adapter.InboxReader;
@@ -21,6 +21,9 @@ Method OnProcessInput(pInput As Broker.Storage.Inbox, Output pOutput As %Registe
     Set request.PayloadId = pInput.PayloadId
     Set request.PayloadType = pInput.PayloadType
     Set request.MessageHandler = ..Adapter.MessageHandler
+    
+    Set tSC = ##class(Broker.Storage.Processed).SetMessageStatus(request.InboxId, request.MessageHandler, ..%SessionId, ..#PENDING)
+    Quit:$$$ISERR(tSC) tSC
 
     Quit ..SendRequestAsync(..MessageRouter, request)
 }

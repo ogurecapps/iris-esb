@@ -9,7 +9,7 @@ Property InboxId As %String [ Required ];
 Property ConsumerName As %String(MAXLEN = 100) [ Required ];
 
 /// For scheduled cleanup
-Property UpdatedAt As %TimeStamp [ InitialExpression = {$ZDT($H, 3)}, Required ];
+Property UpdatedAt As %TimeStamp [ InitialExpression = {$ZDATETIME($HOROLOG, 3)}, Required ];
 
 /// Current status of message
 Property Status As %String(VALUELIST = ",OK,ERROR,PENDING") [ Required ];
@@ -38,8 +38,18 @@ ClassMethod SetMessageStatus(inboxId As %String, consumerName As %String, sessio
             Status = :status,
             StatusDetails = :statusDetails,
             SessionId = :sessionId)
-	Quit:($Get(SQLCODE,0)'=0) $$$ERROR($$$GeneralError, $$$FormatText("SetMessageStatus failed. SQLCODE = %1: %2", SQLCODE, $SYSTEM.SQL.Functions.SQLCODE(SQLCODE)))
+	Quit:($GET(SQLCODE,0)'=0) $$$ERROR($$$GeneralError, $$$FormatText("SetMessageStatus failed. SQLCODE = %1: %2", SQLCODE, $SYSTEM.SQL.Functions.SQLCODE(SQLCODE)))
     
+    Quit $$$OK
+}
+
+ClassMethod ClearPending(Output cleared As %Integer) As %Status
+{
+    New %ROWCOUNT
+    &sql(delete from Broker_Storage.Processed where Status = 'PENDING')
+    Quit:($GET(SQLCODE,0)<0) $$$ERROR($$$GeneralError, $$$FormatText("ClearPending failed. SQLCODE = %1: %2", SQLCODE, $SYSTEM.SQL.Functions.SQLCODE(SQLCODE)))
+    
+    Set cleared = %ROWCOUNT
     Quit $$$OK
 }
 
