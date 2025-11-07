@@ -1,14 +1,21 @@
-/// Async call targets by interval
-Class Broker.Service.Job Extends Ens.BusinessService
+/// Call targets by interval
+Class Util.Service.IntervalCall Extends Ens.BusinessService
 {
 
+/// List of targets to call
 Property TargetConfigNames As Ens.DataType.ConfigName;
+
+/// If true, calls are made asynchronously (SendRequestAsync)
+Property AsyncCall As %Boolean;
+
+/// If true, and the target list contains more than one target, the process will stop after the first error
+Property BreakOnError As %Boolean [ InitialExpression = 1 ];
 
 Property Adapter As Ens.InboundAdapter;
 
 Parameter ADAPTER = "Ens.InboundAdapter";
 
-Parameter SETTINGS = "TargetConfigNames:Basic:selector?multiSelect=1&context={Ens.ContextSearch/ProductionItems?targets=1&productionName=@productionId}";
+Parameter SETTINGS = "TargetConfigNames:Basic:selector?multiSelect=1&context={Ens.ContextSearch/ProductionItems?targets=1&productionName=@productionId},AsyncCall,BreakOnError";
 
 Method OnProcessInput(pInput As %RegisteredObject, Output pOutput As %RegisteredObject, ByRef pHint As %String) As %Status
 {
@@ -19,8 +26,12 @@ Method OnProcessInput(pInput As %RegisteredObject, Output pOutput As %Registered
 
 	For i=1:1:$LISTLENGTH(targets) {
 		Set target = $LISTGET(targets, i)
-		Set tSC = ..SendRequestAsync(target, ##class(Ens.Request).%New())
-        Quit:$$$ISERR(tSC)
+		If ..AsyncCall {
+			Set tSC = ..SendRequestAsync(target, ##class(Ens.Request).%New())
+		} Else  {
+			Set tSC = ..SendRequestSync(target, ##class(Ens.Request).%New(), .pResponse)
+		}
+        Quit:$$$ISERR(tSC)&&..BreakOnError
     }
 
     Quit tSC

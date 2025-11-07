@@ -39,7 +39,7 @@ XData ProductionDefinition
   <Item Name="Broker.Process.Purge" Category="" ClassName="Broker.Process.Purge" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="false" Schedule="">
     <Setting Target="Host" Name="Namespaces">ESB</Setting>
   </Item>
-  <Item Name="Broker.Service.Purge" Category="" ClassName="Broker.Service.Job" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="false" Schedule="">
+  <Item Name="Broker.Service.Purge" Category="" ClassName="Util.Service.IntervalCall" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="false" Schedule="">
     <Setting Target="Host" Name="TargetConfigNames">Broker.Process.Purge</Setting>
     <Setting Target="Adapter" Name="CallInterval">86400</Setting>
   </Item>
