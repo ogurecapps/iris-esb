@@ -26,12 +26,14 @@ Method OnProcessInput(pInput As %RegisteredObject, Output pOutput As %Registered
 
 	For i=1:1:$LISTLENGTH(targets) {
 		Set target = $LISTGET(targets, i)
+		Set pRequest = ##class(Ens.Request).%New()
+
 		If ..AsyncCall {
-			Set tSC = ..SendRequestAsync(target, ##class(Ens.Request).%New())
+			Set tSC = ..SendRequestAsync(target, pRequest)
 		} Else  {
-			Set tSC = ..SendRequestSync(target, ##class(Ens.Request).%New(), .pResponse)
+			Set tSC = ..SendRequestSync(target, pRequest, .pResponse)
 		}
-        Quit:$$$ISERR(tSC)&&..BreakOnError
+        Quit:($$$ISERR(tSC)&&..BreakOnError)
     }
 
     Quit tSC
