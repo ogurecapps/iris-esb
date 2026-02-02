@@ -19,18 +19,16 @@ Index PayloadTypeCreatedAtIdx On (PayloadType, CreatedAt);
 /// Get messages which do not exist in Processed i.e. new messages
 Query UnprocessedMessages(consumer As %String, payloadType As %String, notBefore As %TimeStamp) As %SQLQuery(CONTAINID = 1, ROWSPEC = "ID:%Integer") [ SqlProc ]
 {
-    select m.ID 
-    from Broker_Storage.Inbox m 
-    where m.PayloadType = :payloadType 
-        and m.CreatedAt >= :notBefore
-        and (
-            not exists (
-                select 1 
-                from Broker_Storage.Processed p
-                where p.ConsumerName = :consumer and p.InboxId = m.ID
-                    and p.Status <> 'ERROR'
-            )
-        )
+    select 
+        m.ID 
+    from 
+        Broker_Storage.Inbox m 
+    left join (select InboxId, Status from Broker_Storage.Processed where ConsumerName = :consumer) p 
+        on m.ID = p.InboxId 
+    where 
+        (p.InboxId is null or p.Status = 'ERROR') and 
+        m.PayloadType = :payloadType and 
+        m.CreatedAt >= :notBefore
 }
 
 /// Get inbox record by message
