@@ -18,45 +18,45 @@ Index CreatedAtIdx On CreatedAt;
 ClassMethod DropMeasurement(inboxId As %String, consumerName As %String) As %Status
 {
    If ..InboxIdConsumerNameKeyOpen(inboxId, consumerName) {
-       Quit ..InboxIdConsumerNameKeyDelete(inboxId, consumerName)    
+       Return ..InboxIdConsumerNameKeyDelete(inboxId, consumerName)    
    }
 
-   Quit $$$OK
+   Return $$$OK
 }
 
 ClassMethod OnRequest(inboxId As %String, consumerName As %String) As %Status
 {
     Set sc = ..DropMeasurement(inboxId, consumerName) // For resend message case
-    Quit:$$$ISERR(sc) sc
+    Return:$$$ISERR(sc) sc
 
     Set h = $NOW()
-    Set ts = ($PIECE(h,",",1)*86400 + $PIECE(h,",",2)) * 1000
+    Set createdMs = ($PIECE(h,",",1) * 86400 + $PIECE(h,",",2)) * 1000
 
     &sql(insert Broker_Storage.Performance 
         set 
             InboxId = :inboxId, 
             ConsumerName = :consumerName,
-            CreatedMs = :ts,
+            CreatedMs = :createdMs,
             CreatedAt = CURRENT_TIMESTAMP)
-	Quit:($GET(SQLCODE,0)'=0) $$$ERROR($$$GeneralError, $$$FormatText("OnRequest failed. SQLCODE = %1: %2", SQLCODE, $SYSTEM.SQL.Functions.SQLCODE(SQLCODE)))
+	Return:($GET(SQLCODE,0)'=0) $$$ERROR($$$GeneralError, $$$FormatText("OnRequest failed. SQLCODE = %1: %2", SQLCODE, $SYSTEM.SQL.Functions.SQLCODE(SQLCODE)))
     
-    Quit $$$OK
+    Return $$$OK
 }
 
 ClassMethod OnResponse(inboxId As %String, consumerName As %String) As %Status
 {
     Set h = $NOW()
-    Set ts = ($PIECE(h,",",1)*86400 + $PIECE(h,",",2)) * 1000
+    Set createdMs = ($PIECE(h,",",1) * 86400 + $PIECE(h,",",2)) * 1000
 
     &sql(update Broker_Storage.Performance 
         set 
-            ProcessedMs = :ts
+            ProcessedMs = :createdMs
         where
             InboxId = :inboxId and 
             ConsumerName = :consumerName)
-	Quit:($GET(SQLCODE,0)'=0) $$$ERROR($$$GeneralError, $$$FormatText("OnResponse failed. SQLCODE = %1: %2", SQLCODE, $SYSTEM.SQL.Functions.SQLCODE(SQLCODE)))
+	Return:($GET(SQLCODE,0)'=0) $$$ERROR($$$GeneralError, $$$FormatText("OnResponse failed. SQLCODE = %1: %2", SQLCODE, $SYSTEM.SQL.Functions.SQLCODE(SQLCODE)))
     
-    Quit $$$OK
+    Return $$$OK
 }
 
 Storage Default

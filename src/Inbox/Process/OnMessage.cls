@@ -7,10 +7,10 @@ Method OnRequest(request As Ens.StreamContainer, Output response As Ens.StreamCo
     Set tSC = $$$OK
     
     Set stream = request.StreamGet()
-    Quit:('$ISOBJECT(stream))||(stream.Size=0) $$$ERROR($$$GeneralError, "Input stream is empty")
+    Return:('$ISOBJECT(stream))||(stream.Size=0) $$$ERROR($$$GeneralError, "Input stream is empty")
     Set className = request.Attributes.GetAt("SourceClass")
-    Quit:className="" $$$ERROR($$$GeneralError, "You must specify the import_to parameter")
-    Quit:'##class(%Dictionary.ClassDefinition).%Exists($LISTBUILD(className)) $$$ERROR($$$GeneralError, $$$FormatText("Class '%1' does not exist", className))
+    Return:className="" $$$ERROR($$$GeneralError, "You must specify the import_to parameter")
+    Return:'##class(%Dictionary.ClassDefinition).%Exists($LISTBUILD(className)) $$$ERROR($$$GeneralError, $$$FormatText("Class '%1' does not exist", className))
 
     // You must create a class (import schema) for deserializing messages before the ESB can accept messages of this type. 
     // This class must extend Inbox.Message.Inbound and be transferred via the import_to parameter of the Inbox API
@@ -22,13 +22,13 @@ Method OnRequest(request As Ens.StreamContainer, Output response As Ens.StreamCo
 	} Else {
 		Set tSC = msg.%JSONImport(stream)	
 	}
-    Quit:$$$ISERR(tSC) tSC
+    Return:$$$ISERR(tSC) tSC
 
     Set tSC = ..Put2Inbox(msg, .resp)
-    Quit:$$$ISERR(tSC) tSC
+    Return:$$$ISERR(tSC) tSC
 
     Set response = ..BuildResponse(className)
-    Quit tSC
+    Return tSC
 }
 
 Method BuildResponse(className As %String) As Ens.StreamContainer
@@ -45,7 +45,7 @@ Method BuildResponse(className As %String) As Ens.StreamContainer
     Do json.%ToJSON(response.Stream)
     Do response.Attributes.SetAt(##class(%CSP.REST).#HTTP201CREATED, "Status")
     
-    Quit response
+    Return response
 }
 
 Storage Default

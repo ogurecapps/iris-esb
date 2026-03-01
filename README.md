@@ -6,8 +6,17 @@ This project is a try to implement some typical ESB features on the InterSystems
 3. Message validation against the Data Model (Data Schema)
 4. Flexible API to receive any message types (using payload container)
 5. Centralized monitoring and alerting control
+# What's new
+Added more ways for error handling. You can choose a strategy that suits you best. In the Consumer (`Broker.Service.InboxReader`) added a `Read` option. The options are responsible for reading the message queue and can contain one of the following values:
+- `NewOnly` means "At-most once" guarantee type, so the broker will not try to re-deliver failed messages in this thread
+- `ErrorOnly` means reading only messages with errors. Use this value to set up a separate error message thread. You can limit the number of message delivery retries by the formula: 
+```
+RetryCount = MessageLifetime / CallInterval
+```
+- `AllMessages` (by default) means "At-least once" guarantee type, the broker will attempt to deliver the message until it receives a successful response, or until the message expires. A single business service handles both types of messages: re-delivery of failed messages and sending new ones
+<br><br>
 
-The project contains three main modules. Let us take a look at them.
+The project contains three main modules. Let us take a look at them:
 ## Message Broker (Broker.*)
 Message Broker is designed to keep messages and create separate message consumers, each of which can be independently subscribed to a message queue. It means all consumers have their own inbound queue by message type (not literally). Messages have statuses: `NEW`, `PENDING` (processing in progress), `ERROR`, and `OK` (message successfully processed). The main function of this Message Broker is to guarantee the delivery of messages. The message will be resending again and again until one of two events happens: successful message processing or the end of message lifetime (message expired).
 

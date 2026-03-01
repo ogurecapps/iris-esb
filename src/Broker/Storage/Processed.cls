@@ -38,19 +38,19 @@ ClassMethod SetMessageStatus(inboxId As %String, consumerName As %String, sessio
             Status = :status,
             StatusDetails = :statusDetails,
             SessionId = :sessionId)
-	Quit:($GET(SQLCODE,0)'=0) $$$ERROR($$$GeneralError, $$$FormatText("SetMessageStatus failed. SQLCODE = %1: %2", SQLCODE, $SYSTEM.SQL.Functions.SQLCODE(SQLCODE)))
+	Return:($GET(SQLCODE,0)'=0) $$$ERROR($$$GeneralError, $$$FormatText("SetMessageStatus failed. SQLCODE = %1: %2", SQLCODE, $SYSTEM.SQL.Functions.SQLCODE(SQLCODE)))
     
-    Quit $$$OK
+    Return $$$OK
 }
 
 ClassMethod ClearPending(Output cleared As %Integer) As %Status
 {
     New %ROWCOUNT
     &sql(delete from Broker_Storage.Processed where Status = 'PENDING')
-    Quit:($GET(SQLCODE,0)<0) $$$ERROR($$$GeneralError, $$$FormatText("ClearPending failed. SQLCODE = %1: %2", SQLCODE, $SYSTEM.SQL.Functions.SQLCODE(SQLCODE)))
+    Return:($GET(SQLCODE,0)<0) $$$ERROR($$$GeneralError, $$$FormatText("ClearPending failed. SQLCODE = %1: %2", SQLCODE, $SYSTEM.SQL.Functions.SQLCODE(SQLCODE)))
     
     Set cleared = %ROWCOUNT
-    Quit $$$OK
+    Return $$$OK
 }
 
 Storage Default

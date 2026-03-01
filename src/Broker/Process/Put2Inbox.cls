@@ -9,8 +9,8 @@ Parameter SETTINGS = "Operation:Basic:selector?context={Ens.ContextSearch/Produc
 
 Method Put2Inbox(request As Ens.Request, Output response As Ens.Response) As %Status
 {
-    Quit:..Operation="" $$$ERROR($$$GeneralError, "You need to set Operation setting")
-    Quit ..SendRequestSync(..Operation, request, .response)
+    Return:..Operation="" $$$ERROR($$$GeneralError, "You need to set Operation setting")
+    Return ..SendRequestSync(..Operation, request, .response)
 }
 
 ClassMethod OnGetConnections(Output pArray As %String, pItem As Ens.Config.Item)

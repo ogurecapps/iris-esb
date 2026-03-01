@@ -27,25 +27,24 @@ Method OnRequest(request As Ens.AlertRequest, Output response As Ens.Response) A
     }
 
     If request.AlertDestination'="" {
-        Quit ..SendRequestAsync($PIECE(request.AlertDestination, ":", 1), request)
+        Return ..SendRequestAsync($PIECE(request.AlertDestination, ":", 1), request)
     } Else {
         $$$LOGWARNING($$$FormatText("Alert destination not found for source '%1'", request.SourceConfigName))
     }
 
-    Quit $$$OK
+    Return $$$OK
 }
 
 Method OnResponse(request As %Library.Persistent, ByRef response As %Library.Persistent, callrequest As %Library.Persistent, callresponse As %Library.Persistent, pCompletionKey As %String) As %Status
 {
-	Quit $$$OK
+	Return $$$OK
 }
 
 ClassMethod OnGetConnections(Output pArray As %String, pItem As Ens.Config.Item)
 {
     Set prod = ##class(Ens.Config.Production).%OpenId(##class(Ens.Director).GetActiveProductionName())
-	Quit:'$iso(prod)
+	Return:'$iso(prod)
 	
-    Set className = ##class(Broker.Process.MessageHandler).%ClassName(1)
 	For i=1:1:prod.Items.Count() {
 		#dim item As Ens.Config.Item = prod.Items.GetAt(i)
 		Set:(item.Name["Alert.Operation.") pArray(item.Name) = ""

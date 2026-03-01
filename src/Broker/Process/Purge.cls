@@ -27,7 +27,7 @@ Method OnRequest(request As Ens.Request, Output response As Ens.Response) As %St
         }	
 	}
 
-    Quit $$$OK
+    Return $$$OK
 }
 
 Method CleanNamespace(target As %String, limit As %Integer, Output inboxCleared As %Integer, Output processedCleared As %Integer) As %Status
@@ -35,14 +35,14 @@ Method CleanNamespace(target As %String, limit As %Integer, Output inboxCleared 
     New $NAMESPACE
     Set $NAMESPACE = target
 
-    Quit:'##class(%Dictionary.ClassDefinition).%Exists($LISTBUILD("Broker.Storage.Inbox")) $$$ERROR($$$GeneralError, "Class Broker.Storage.Inbox does not exist")
-    Quit:'##class(%Dictionary.ClassDefinition).%Exists($LISTBUILD("Broker.Storage.Processed")) $$$ERROR($$$GeneralError, "Class Broker.Storage.Processed does not exist")
+    Return:'##class(%Dictionary.ClassDefinition).%Exists($LISTBUILD("Broker.Storage.Inbox")) $$$ERROR($$$GeneralError, "Class Broker.Storage.Inbox does not exist")
+    Return:'##class(%Dictionary.ClassDefinition).%Exists($LISTBUILD("Broker.Storage.Processed")) $$$ERROR($$$GeneralError, "Class Broker.Storage.Processed does not exist")
 
     Set tSC = ..PurgeInbox(limit, .inboxCleared)
-    Quit:$$$ISERR(tSC) tSC
+    Return:$$$ISERR(tSC) tSC
     Set tSC = ..PurgeProcessed(limit, .processedCleared)
 
-    Quit tSC
+    Return tSC
 }
 
 Method PurgeInbox(limit As %Integer, Output cleared As %Integer) As %Status
@@ -50,10 +50,10 @@ Method PurgeInbox(limit As %Integer, Output cleared As %Integer) As %Status
     Set SQLCODE = 0
     New %ROWCOUNT, %msg
     &sql(delete Broker_Storage.Inbox where CreatedAt < {fn TIMESTAMPADD(SQL_TSI_HOUR,-:limit,CURRENT_TIMESTAMP)})
-    Quit:(SQLCODE<0) $$$ERROR($$$GeneralError, $$$FormatText("PurgeInbox failed (SQLCODE = %1): %2", SQLCODE, %msg))
+    Return:(SQLCODE<0) $$$ERROR($$$GeneralError, $$$FormatText("PurgeInbox failed (SQLCODE = %1): %2", SQLCODE, %msg))
     
     Set cleared = %ROWCOUNT
-    Quit $$$OK
+    Return $$$OK
 }
 
 Method PurgeProcessed(limit As %Integer, Output cleared As %Integer) As %Status
@@ -61,10 +61,10 @@ Method PurgeProcessed(limit As %Integer, Output cleared As %Integer) As %Status
     Set SQLCODE = 0
     New %ROWCOUNT, %msg
     &sql(delete Broker_Storage.Processed where UpdatedAt < {fn TIMESTAMPADD(SQL_TSI_HOUR,-:limit,CURRENT_TIMESTAMP)})
-    Quit:(SQLCODE<0) $$$ERROR($$$GeneralError, $$$FormatText("PurgeProcessed failed (SQLCODE = %1): %2", SQLCODE, %msg))
+    Return:(SQLCODE<0) $$$ERROR($$$GeneralError, $$$FormatText("PurgeProcessed failed (SQLCODE = %1): %2", SQLCODE, %msg))
     
     Set cleared = %ROWCOUNT
-    Quit $$$OK
+    Return $$$OK
 }
 
 Storage Default

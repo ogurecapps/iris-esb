@@ -16,8 +16,8 @@ Index PayloadTypePayloadIdKey On (PayloadType, PayloadId) [ Unique ];
 
 Index PayloadTypeCreatedAtIdx On (PayloadType, CreatedAt);
 
-/// Get messages which do not exist in Processed i.e. new messages
-Query UnprocessedMessages(consumer As %String, payloadType As %String, notBefore As %TimeStamp) As %SQLQuery(CONTAINID = 1, ROWSPEC = "ID:%Integer") [ SqlProc ]
+/// For more details, see the 'Read' parameter in the Broker.Adapter.InboxReader
+Query AllMessages(consumer As %String, payloadType As %String, notBefore As %TimeStamp) As %SQLQuery(CONTAINID = 1, ROWSPEC = "ID:%Integer") [ SqlProc ]
 {
     select 
         m.ID 
@@ -31,6 +31,35 @@ Query UnprocessedMessages(consumer As %String, payloadType As %String, notBefore
         m.CreatedAt >= :notBefore
 }
 
+/// For more details, see the 'Read' parameter in the Broker.Adapter.InboxReader
+Query NewOnly(consumer As %String, payloadType As %String, notBefore As %TimeStamp) As %SQLQuery(CONTAINID = 1, ROWSPEC = "ID:%Integer") [ SqlProc ]
+{
+    select 
+        m.ID 
+    from 
+        Broker_Storage.Inbox m 
+    left join (select InboxId from Broker_Storage.Processed where ConsumerName = :consumer) p 
+        on m.ID = p.InboxId 
+    where 
+        p.InboxId is null and 
+        m.PayloadType = :payloadType and 
+        m.CreatedAt >= :notBefore
+}
+
+/// For more details, see the 'Read' parameter in the Broker.Adapter.InboxReader
+Query ErrorOnly(consumer As %String, payloadType As %String, notBefore As %TimeStamp) As %SQLQuery(CONTAINID = 1, ROWSPEC = "ID:%Integer") [ SqlProc ]
+{
+    select 
+        m.ID 
+    from 
+        Broker_Storage.Inbox m 
+    join (select InboxId from Broker_Storage.Processed where ConsumerName = :consumer and Status = 'ERROR') p 
+        on m.ID = p.InboxId 
+    where  
+        m.PayloadType = :payloadType and 
+        m.CreatedAt >= :notBefore
+}
+
 /// Get inbox record by message
 ClassMethod GetFromInbox(payloadId As %String, payloadType As %String, ByRef record As Broker.Storage.Inbox) As %Status
 {
@@ -38,16 +67,16 @@ ClassMethod GetFromInbox(payloadId As %String, payloadType As %String, ByRef rec
 	Set id = ""
 	
 	&sql(select id into :id from Broker_Storage.Inbox where PayloadId = :payloadId and PayloadType = :payloadType)
-    Quit:(SQLCODE<0) $$$ERROR($$$GeneralError, $$$FormatText("GetFromInbox failed. SQLCODE = %1: %2", SQLCODE, $SYSTEM.SQL.Functions.SQLCODE(SQLCODE)))
-    Quit:id="" $$$ERROR($$$GeneralError, $$$FormatText("Record not found. PayloadId = '%1', PayloadType = '%2'", payloadId, payloadType))
+    Return:(SQLCODE<0) $$$ERROR($$$GeneralError, $$$FormatText("GetFromInbox failed. SQLCODE = %1: %2", SQLCODE, $SYSTEM.SQL.Functions.SQLCODE(SQLCODE)))
+    Return:id="" $$$ERROR($$$GeneralError, $$$FormatText("Record not found. PayloadId = '%1', PayloadType = '%2'", payloadId, payloadType))
 
     Set record = ##class(Broker.Storage.Inbox).%OpenId(id)
-    Quit $$$OK
+    Return $$$OK
 }
 
-/// Use this method to quickly add something to the Inbox.
-/// Also, you can extend a business process Broker.Process.Put2Inbox and call the same method in this class
-/// if you need to trace message content (don't forget to add operation Broker.Operation.Put2Inbox to your Production)
+/// Use this method to quietly add a message to the Inbox.
+/// Also, you can extend a business process Broker.Process.Put2Inbox and call Put2Inbox() of process if you need to trace message content 
+/// (don't forget to add operation Broker.Operation.Put2Inbox to your Production)
 ClassMethod Put2Inbox(request As Ens.Request) As %Status
 {
     Set payloadId = request.%Id()
@@ -59,9 +88,9 @@ ClassMethod Put2Inbox(request As Ens.Request) As %Status
     			PayloadId = :payloadId, 
     			PayloadType = :payloadType, 
     			createdAt = CURRENT_TIMESTAMP)
-    Quit:(SQLCODE'=0) $$$ERROR($$$GeneralError, $$$FormatText("SaveToInbox failed. SQLCODE = %1: %2", SQLCODE, $SYSTEM.SQL.Functions.SQLCODE(SQLCODE)))
+    Return:(SQLCODE'=0) $$$ERROR($$$GeneralError, $$$FormatText("SaveToInbox failed. SQLCODE = %1: %2", SQLCODE, $SYSTEM.SQL.Functions.SQLCODE(SQLCODE)))
     
-    Quit $$$OK
+    Return $$$OK
 }
 
 Storage Default

@@ -18,43 +18,41 @@ ClassMethod Call(pClassName As %String, pRequest As %DynamicObject) As %DynamicO
     
     Do pRequest.%ToJSON(input.Stream)
     
-    Quit:$CLASSNAME()'=$GET($$$ConfigClassName($CLASSNAME())) ..Error($$$ERROR($$$EnsErrBusinessDispatchNameNotRegistered, $CLASSNAME()))
+    Return:$CLASSNAME()'=$GET($$$ConfigClassName($CLASSNAME())) ..Error($$$ERROR($$$EnsErrBusinessDispatchNameNotRegistered, $CLASSNAME()))
 	
 	Set tSC = ##class(Ens.Director).CreateBusinessService($CLASSNAME(), .service)
-	Quit:$$$ISERR(tSC) ..Error(tSC)
+	Return:$$$ISERR(tSC) ..Error(tSC)
 	
 	Set tSC = service.ProcessInput(input, .output)
-	Quit:$$$ISERR(tSC) ..Error(tSC)
+	Return:$$$ISERR(tSC) ..Error(tSC)
 
-    Quit ..Success(output)
+    Return ..Success(output)
 }
 
 ClassMethod Success(pOutput As Ens.StreamContainer) As %DynamicObject
 {
     Do ..%SetStatusCode(##class(%CSP.REST).#HTTP200OK)
 
-    If (pOutput '= $$$NULLOREF) {
+    If $iso(pOutput) {
         // HTTP status can be set during the processing of the call in the Business Process
-        If pOutput.Attributes.GetAt("Status") '= "" {
-            Do ..%SetStatusCode(pOutput.Attributes.GetAt("Status"))
-        }
+        Do:pOutput.Attributes.GetAt("Status")'="" ..%SetStatusCode(pOutput.Attributes.GetAt("Status"))
         Set stream = pOutput.StreamGet()
-		Quit $SELECT($iso(stream):{}.%FromJSON(stream),1:"")
-	} Else {
-        Quit ""
-    }
+		Return:$iso(stream) {}.%FromJSON(stream)
+	}
+
+    Return ""
 }
 
 ClassMethod Error(pStatus As %Status) As %DynamicObject
 {
     Do ..%SetStatusCode(##class(%CSP.REST).#HTTP500INTERNALSERVERERROR)
     Do ##class(%CSP.REST).StatusToJSON(pStatus, .json)
-    Quit json
+    Return json
 }
 
 Method OnProcessInput(pInput As Ens.StreamContainer, Output pOutput As Ens.StreamContainer) As %Status
 {
-    Quit ..SendRequestSync(..OnMessageProcess, pInput, .pOutput)
+    Return ..SendRequestSync(..OnMessageProcess, pInput, .pOutput)
 }
 
 ClassMethod OnGetConnections(Output pArray As %String, pItem As Ens.Config.Item)

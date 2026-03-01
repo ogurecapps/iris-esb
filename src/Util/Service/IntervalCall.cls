@@ -22,7 +22,7 @@ Method OnProcessInput(pInput As %RegisteredObject, Output pOutput As %Registered
     Set tSC = $$$OK
     Set targets = $LISTFROMSTRING(..TargetConfigNames)
 
-    Quit:$LISTLENGTH(targets)=0 $$$ERROR($$$GeneralError, "TargetConfigNames are not defined")
+    Return:$LISTLENGTH(targets)=0 $$$ERROR($$$GeneralError, "TargetConfigNames are not defined")
 
 	For i=1:1:$LISTLENGTH(targets) {
 		Set target = $LISTGET(targets, i)
@@ -36,14 +36,16 @@ Method OnProcessInput(pInput As %RegisteredObject, Output pOutput As %Registered
         Quit:($$$ISERR(tSC)&&..BreakOnError)
     }
 
-    Quit tSC
+    Return tSC
 }
 
 ClassMethod OnGetConnections(Output pArray As %String, pItem As Ens.Config.Item)
 {
 	If pItem.GetModifiedSetting("TargetConfigNames", .tValue) {
 		Set targets = $LISTFROMSTRING(tValue)
-		For i=1:1:$LISTLENGTH(targets) Set pArray($LISTGET(targets, i)) = ""
+		For i=1:1:$LISTLENGTH(targets) {
+			Set pArray($LISTGET(targets, i)) = ""
+		}
 	}
 }
 

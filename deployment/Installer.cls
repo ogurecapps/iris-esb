@@ -28,7 +28,7 @@ XData Install [ XMLNamespace = INSTALLER ]
 
 ClassMethod Setup(ByRef pVars, pLogLevel As %Integer = 3, pInstaller As %Installer.Installer, pLogger As %Installer.AbstractLogger) As %Status [ CodeMode = objectgenerator, Internal ]
 {
-    Quit ##class(%Installer.Manifest).%Generate(%compiledclass, %code, "Install")
+    Return ##class(%Installer.Manifest).%Generate(%compiledclass, %code, "Install")
 }
 
 ClassMethod BuildWebApp() As %Status
@@ -42,7 +42,7 @@ ClassMethod BuildWebApp() As %Status
     Set webProperties("AutheEnabled") = 64
     Set webProperties("MatchRoles") = ":%All"
 
-    Quit ##class(Security.Applications).Create("/csp/rest", .webProperties)
+    Return ##class(Security.Applications).Create("/csp/rest", .webProperties)
 }
 
 /// Somehow, custom sensors don't wanna add to the metrics API without %All privileges
@@ -59,7 +59,7 @@ ClassMethod EscalateMonitoringPriv() As %Status
         Set tSC = ##class(Security.Applications).Modify(appName, .webProperties)
     }
 
-    Quit tSC
+    Return tSC
 }
 
 ClassMethod EnableSensors() As %Status
@@ -67,7 +67,7 @@ ClassMethod EnableSensors() As %Status
     New $NAMESPACE
     Set $NAMESPACE = "%SYS"
 
-    Quit ##class(SYS.Monitor.SAM.Config).AddApplicationClass("Broker.Monitor.Metrics", "ESB")
+    Return ##class(SYS.Monitor.SAM.Config).AddApplicationClass("Broker.Monitor.Metrics", "ESB")
 }
 
 ClassMethod PutNotifierDefaults() As %Status
@@ -78,7 +78,7 @@ ClassMethod PutNotifierDefaults() As %Status
     Do ##class(Ens.Util.LookupTable).%UpdateValue("Alert.Operation.LogFileNotifier", "Sample.Process.CustomerOrderHandler")
     Do ##class(Ens.Util.LookupTable).%UpdateValue("Alert.Operation.LogFileNotifier", "Sample.Process.StringArrayHandler")
 
-    Quit $$$OK
+    Return $$$OK
 }
 
 }

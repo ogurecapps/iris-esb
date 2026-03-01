@@ -11,10 +11,10 @@ Method OnTask() As %Status
 {
 	#dim tService As Ens.BusinessService
 	Set tSC = ##class(Ens.Director).CreateBusinessService(..ServiceName, .tService)
-	Quit:$$$ISERR(tSC) tSC
+	Return:$$$ISERR(tSC) tSC
 	
 	Set pRequest = ##class(Ens.Request).%New()
-	Quit tService.ProcessInput(pRequest, .pResponse)
+	Return tService.ProcessInput(pRequest, .pResponse)
 }
 
 }

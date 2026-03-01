@@ -6,7 +6,7 @@ Parameter INVOCATION = "Queue";
 
 Method OnMessage(pRequest As %Library.Persistent, Output pResponse As %Library.Persistent) As %Status
 {
-	Quit ##class(Broker.Storage.Inbox).Put2Inbox(pRequest)
+	Return ##class(Broker.Storage.Inbox).Put2Inbox(pRequest)
 }
 
 }

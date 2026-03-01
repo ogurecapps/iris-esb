@@ -25,7 +25,7 @@ Method OnMessage(request As Ens.AlertRequest, Output response As Ens.Response) A
                 ..Delimiter_$ZSTRIP(request.AlertText,"*C")
 
     $$$TRACE(entry)
-    Quit ..Adapter.PutLine(..FileName, entry)
+    Return ..Adapter.PutLine(..FileName, entry)
 }
 
 }

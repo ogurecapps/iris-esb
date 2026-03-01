@@ -11,7 +11,7 @@ Method OnRequest(request As %Library.Persistent, Output response As %Library.Per
 {
 	Set response = ##class(Ens.Response).%New()	// Required step
 	Hang $RANDOM(6)
-	Quit $SELECT(..ThrowError:$$$ERROR($$$GeneralError,"Something went wrong"),1:$$$OK)
+	Return $SELECT(..ThrowError:$$$ERROR($$$GeneralError,"Something went wrong"),1:$$$OK)
 }
 
 Storage Default

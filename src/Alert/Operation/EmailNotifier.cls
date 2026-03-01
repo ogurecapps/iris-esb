@@ -39,9 +39,7 @@ Method OnMessage(request As Ens.AlertRequest, Output response As Ens.Response) A
  	Do msg.TextData.Write("</html>")
  	
  	Set ..Adapter.SMTP.IgnoreFailedAuth = 1
-	Quit ..Adapter.SendMail(msg)
-
-    Quit $$$OK
+	Return ..Adapter.SendMail(msg)
 }
 
 }

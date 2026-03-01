@@ -10,10 +10,10 @@ Parameter PerformanceDeepInSec = 86400;
 Method GetSensors() As %Status
 {
 	Set sc = ..PerformanceSensors()
-    Quit:$$$ISERR(sc) sc
+    Return:$$$ISERR(sc) sc
 
     Set sc = ..SensorsByConsumer()
-    Quit sc
+    Return sc
 }
 
 Method PerformanceSensors() As %Status
@@ -37,7 +37,7 @@ Method PerformanceSensors() As %Status
         Do ..SetSensorLabels("request_response_performance", $NUMBER(avgMs/1000,3), .labels)
     }
 
-    Quit $$$OK
+    Return $$$OK
 }
 
 Method SensorsByConsumer() As %Status
@@ -55,7 +55,7 @@ Method SensorsByConsumer() As %Status
         Do ..SetSensor("pending_messages_consumer", pending, consumer)
     }
 
-    Quit $$$OK
+    Return $$$OK
 }
 
 Query SensorsByConsumer() As %SQLQuery(CONTAINID = 0, ROWSPEC = "consumer:%String,ok:%Integer,error:%Integer,pending:%Integer") [ SqlProc ]

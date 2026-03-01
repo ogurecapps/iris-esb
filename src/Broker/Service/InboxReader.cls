@@ -14,7 +14,7 @@ Parameter SETTINGS = "MessageRouter:Basic:selector?context={Ens.ContextSearch/Pr
 
 Method OnProcessInput(pInput As Broker.Storage.Inbox, Output pOutput As %RegisteredObject, ByRef pHint As %String) As %Status
 {
-    Quit:..MessageRouter="" $$$ERROR($$$GeneralError, "MessageRouter setting is required")
+    Return:..MessageRouter="" $$$ERROR($$$GeneralError, "MessageRouter setting is required")
     
     Set request = ##class(Broker.Message.InboxRequest).%New()
     Set request.InboxId = pInput.%Id()
@@ -23,9 +23,9 @@ Method OnProcessInput(pInput As Broker.Storage.Inbox, Output pOutput As %Registe
     Set request.MessageHandler = ..Adapter.MessageHandler
     
     Set tSC = ##class(Broker.Storage.Processed).SetMessageStatus(request.InboxId, request.MessageHandler, ..%SessionId, ..#PENDING)
-    Quit:$$$ISERR(tSC) tSC
+    Return:$$$ISERR(tSC) tSC
 
-    Quit ..SendRequestAsync(..MessageRouter, request)
+    Return ..SendRequestAsync(..MessageRouter, request)
 }
 
 ClassMethod OnGetConnections(Output pArray As %String, pItem As Ens.Config.Item)

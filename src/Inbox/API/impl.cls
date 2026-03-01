@@ -13,7 +13,7 @@ Parameter ExposeServerExceptions = 0;
 ///     payload, Only JSON allowed<br/>
 ClassMethod OnMessage(importto As %String, payload As %DynamicObject) As %DynamicObject
 {
-    Quit ##class(Inbox.Service.API).Call(importto, payload)
+    Return ##class(Inbox.Service.API).Call(importto, payload)
 }
 
 /// Every well-designed API must have a health check endpoint
@@ -23,7 +23,7 @@ ClassMethod Ping() As %DynamicObject
     Do ..%SetContentType("application/json")
     Do ..%WriteResponse({"message": ($$$FormatText("Server time: %1", $ZDATETIME($HOROLOG,3)))}.%ToJSON())
 
-    Quit $$$OK
+    Return $$$OK
 }
 
 }
