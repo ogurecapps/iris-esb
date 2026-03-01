@@ -16,8 +16,8 @@ RetryCount = MessageLifetime / CallInterval
 - `AllMessages` (by default) means "At-least once" guarantee type, the broker will attempt to deliver the message until it receives a successful response, or until the message expires. A single business service handles both types of messages: re-delivery of failed messages and sending new ones
 <br><br>
 
-The project contains three main modules. Let us take a look at them:
-## Message Broker (Broker.*)
+The project contains three main modules (three packages). Let us take a look at them:
+## Message Broker (Broker.* package)
 Message Broker is designed to keep messages and create separate message consumers, each of which can be independently subscribed to a message queue. It means all consumers have their own inbound queue by message type (not literally). Messages have statuses: `NEW`, `PENDING` (processing in progress), `ERROR`, and `OK` (message successfully processed). The main function of this Message Broker is to guarantee the delivery of messages. The message will be resending again and again until one of two events happens: successful message processing or the end of message lifetime (message expired).
 
 IRIS ESB uses a slightly improved version of the Kafka algorithm. Kafka maintains the offset of the last processed message to facilitate moving forward on the message queue. Here, we keep all processed message IDs, which allows us not to stop consuming when we have some "troubled" messages in the queue. So, IRIS ESB can restore data flows after the temporary unavailability of external systems (or if we got some "bad data") without manual actions.
@@ -34,16 +34,16 @@ Finally, create a consumer. It is a business service instance of a `Broker.Servi
 - `MessageHandler` - Your handler above
 - `MessageType` - On what kind of message do we wanna subscribe to? It is a full analogy topic in the Kafka
 - `MessageLifetime` - When will the message expire? It can be different for each consumer
-## Inbox REST API (Inbox.*)
+## Inbox REST API (Inbox.* package)
 Each ESB should have a universal way to receive messages from external systems. Here it's a REST API. Universal means you can send any JSON payload to this API. The received JSON text will be deserialized into the Cache class and placed in the Inbox queue. IRIS ESB works with class objects, not `%DynamicObject`, for example, becouse validation of messages is one more important feature of the ESB pattern. And importing JSON text to the class, I believe, is the best way for it.
 
-So, to add a new custom message type, you need to create a class (or import it from some schema) that extends `Inbox.Message.Inbound` and describes the structure of your message (see samples in `Sample.Message.*` package). When you send a message to the Inbox API, set the name of this class as the `import_to` parameter.
+So, to add a new custom message type, you need to create a class (or import it from some schema) that extends `Inbox.Message.Inbound` and describes the structure of your message (see samples in the `Sample.Message.*` package). When you send a message to the Inbox API, set the name of this class as the `import_to` parameter.
 ### Inbox API testing
 There are two endpoints for this API:
-- `GET http://localhost:9092/csp/rest/healthcheck` - just a simple healthcheck. Should return `200 OK` if all is set up the right way
-- `POST http://localhost:9092/csp/rest/v1/inbox` - put new message into ESB
+- `GET http://localhost:9092/csp/rest/healthcheck` - just a simple health check. Should return `200 OK` if all is set up the right way
+- `POST http://localhost:9092/csp/rest/v1/inbox` - put a new message into ESB
 
-To put into the ESB a new sample of "Customer Order", you need to do the following request via CURL or Postman:
+To put into the ESB a new sample of "Customer Order", you need to make the following request via CURL or Postman:
 ```
 curl --location 'http://localhost:9092/csp/rest/v1/inbox?import_to=Sample.Message.CustomerOrder.Order' \
 --header 'Content-Type: application/json' \
@@ -81,13 +81,13 @@ curl --location 'http://localhost:9092/csp/rest/v1/inbox?import_to=Sample.Messag
 ```
 Visual traces for these requests can be seen in the messages of the `Inbox.Service.API` business service. Check: *Interoperability > Production Configuration  - (Production.Main).*
 
-In Production, configured two test consumers, one for "Customer Order" and the other for "Array of Strings" message types. After messages are received by the Inbox API, you can see that them was processed in the `Sample.Service.CustomerOrderConsumer` or `Sample.Service.StringArrayConsumer` services. 
-## Monitoring and Alerting (Alert.*)
+In Production, configured two test consumers, one for "Customer Order" and the other for "Array of Strings" message types. After messages are received by the Inbox API, you can see that them were processed in the `Sample.Service.CustomerOrderConsumer` or `Sample.Service.StringArrayConsumer` services. 
+## Monitoring and Alerting (Alert.* package)
 In IRIS ESB, we have a flexible alerting module to set up subscriptions and ways to deliver alerts when something goes wrong in our data flows.
 ### How alerting works
-You should create a process in the Production based on `Alert.Process.Router` class and call it `Ens.Alert`. The process, with this name, will automatically collect all alerts from Production items for which raised flag `Alert on Error`. It is the default way to create an alert processor, described in the documentation [here](https://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=EGDV_alerts#EGDV_alerts_scenario3).
+You must create a process in Production based on the `Alert.Process.Router` class and call it `Ens.Alert`. The process, with this name, will automatically collect all alerts from Production items for which the `Alert on Error` flag has been raised. It is the default way to create an alert processor, described in the documentation [here](https://docs.intersystems.com/irislatest/csp/docbook/DocBook.UI.Page.cls?KEY=EGDV_alerts#EGDV_alerts_scenario3).
 
-Next, you need to fill `Lookup Tables` named by notifier types. For example, table names can be like `Alert.Operation.EmailNotifier`, `Alert.Operation.SMSNotifier`, and so on (you can add your own notifier implementations to the `Alert.Operation.*` package). It must be the names of Operations in our Production. I strongly recommend using class names for Production config item names, always when it is possible.
+Next, you need to fill `Lookup Tables` names by notifier types. For example, table names can be like `Alert.Operation.EmailNotifier`, `Alert.Operation.SMSNotifier`, and so on (you can add your own notifier implementations to the `Alert.Operation.*` package). It must be the names of Operations in our Production. I strongly recommend using class names for Production config item names, always when it is possible.
 
 For each of these tables, `Key` means the source of the exception (name of Production business host). `Value` means contact ID (e-mail address for EmailNotifier, for example). `Value` can be empty when we use the notifier without forwarding the alert to a specific address.
 
@@ -100,8 +100,12 @@ These metrics are published via API (see `GET http://localhost:9092/api/monitor/
 - `http://localhost:3000` - Grafana
 
 Added custom metrics have a tag `esb_broker`.
+
+## Util.* package
+Also, I added the util package to the project. Inside, just a couple of universal runners for running different things in Production. See [details](https://community.intersystems.com/post/how-run-process-interval-or-schedule). They are frequently used as initiators for dataflows in real projects.
+
 ## Try it
-You should have installed [Docker Desktop](https://www.docker.com/products/docker-desktop) and [Git](https://git-scm.com) on your local PC. Clone the repository and run Docker containers:
+You must have installed [Docker Desktop](https://www.docker.com/products/docker-desktop) and [Git](https://git-scm.com) on your local PC. Clone the repository and run Docker containers:
 ```
 git clone https://github.com/ogurecapps/iris-esb.git
 cd iris-esb
@@ -113,8 +117,8 @@ Send test messages as described in the [Inbox API testing](#inbox-api-testing) s
 
 Open Grafana at `http://localhost:3000` (default credentials: `admin` `admin`). 
 1. Add a data source: choose Prometheus as data source type and enter Server URL as `http://host.docker.internal:9090`. 
-2. Add dashboard: select *New > Import* and take a ready-to-use dashboard JSON config file from this [this](https://community.intersystems.com/post/monitoring-intersystems-iris-prometheus-and-grafana) Developer Community article, for example.
+2. Add dashboard: select "New" > "Import" and take a ready-to-use dashboard JSON config file from this [this](https://community.intersystems.com/post/monitoring-intersystems-iris-prometheus-and-grafana) Developer Community article, for example.
 ## Conclusion
-Enjoy! Now you have an ESB with API and monitoring. It remains only to add your own message types and data flow implementations :smirk: 
+Enjoy! Now you have an ESB with API and monitoring. Now it remains only to add your own message types and data flow implementations :smirk: 
 
 Feel free to fork, rate my repo, and ask any questions in the related [Dev Community article](https://community.intersystems.com/post/why-does-intersystems-have-no-out-box-esb-solution-let%E2%80%99s-try-fix-it).
