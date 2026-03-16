@@ -77,7 +77,7 @@ ClassMethod GetFromInbox(payloadId As %String, payloadType As %String, ByRef rec
 /// Use this method to quietly add a message to the Inbox.
 /// Also, you can extend a business process Broker.Process.Put2Inbox and call Put2Inbox() of process if you need to trace message content 
 /// (don't forget to add operation Broker.Operation.Put2Inbox to your Production)
-ClassMethod Put2Inbox(request As Ens.Request) As %Status
+ClassMethod Put2Inbox(request As %Library.Persistent) As %Status
 {
     Set payloadId = request.%Id()
     Set payloadType = $CLASSNAME(request)

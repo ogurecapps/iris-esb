@@ -7,10 +7,10 @@ Property Operation As Ens.DataType.ConfigName [ InitialExpression = "Broker.Oper
 
 Parameter SETTINGS = "Operation:Basic:selector?context={Ens.ContextSearch/ProductionItems?className=Broker.Operation.Put2Inbox&productionName=@productionId}";
 
-Method Put2Inbox(request As Ens.Request, Output response As Ens.Response) As %Status
+Method Put2Inbox(pRequest As %Library.Persistent, Output pResponse As %Library.Persistent) As %Status
 {
     Return:..Operation="" $$$ERROR($$$GeneralError, "You need to set Operation setting")
-    Return ..SendRequestSync(..Operation, request, .response)
+    Return ..SendRequestSync(..Operation, pRequest, .pResponse)
 }
 
 ClassMethod OnGetConnections(Output pArray As %String, pItem As Ens.Config.Item)
