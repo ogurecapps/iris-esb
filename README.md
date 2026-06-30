@@ -7,6 +7,17 @@ This project is a try to implement some typical ESB features on the InterSystems
 4. Flexible API to receive any message types (using payload container)
 5. Centralized monitoring and alerting control
 # What's new
+
+#### Jun 30
+In integrations, we often need to prevent sending the same data twice. To solve this issue, was added methods:
+
+- `SetCheckpoint()` - you can choose a storage global and its dimensions. For example, we need to prevent the double processing of the same customer order statuses. So, we have two dimensions: order number + order status, saving will look like: `..SetCheckpoint(globalName, someAdditionalInfo, request.OrderId, request.OrderStatus)`
+
+- `IsKnownCheckpoint()` - checks the existence of global and its nodes. If the method returns `true`, it means a similar message was processed before. The call: `..IsKnownCheckpoint(globalName, .payload, request.OrderId, request.OrderStatus)` where payload will contain details about previous processing.
+
+You can find a sample of using this approach in `Sample.Process.TestHandler`
+
+#### Mar 01
 Added more ways for error handling. You can choose a strategy that suits you best. In the Consumer (`Broker.Service.InboxReader`) added a `Read` option. The options are responsible for reading the message queue and can contain one of the following values:
 - `NewOnly` means "At-most once" guarantee type, so the broker will not try to re-deliver failed messages in this thread
 - `ErrorOnly` means reading only messages with errors. Use this value to set up a separate error message thread. You can limit the number of message delivery retries by the formula: 
