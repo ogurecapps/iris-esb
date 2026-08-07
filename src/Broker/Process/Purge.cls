@@ -18,31 +18,35 @@ Method OnRequest(request As Ens.Request, Output response As Ens.Response) As %St
     Set ptr = 0
 
     While $LISTNEXT(list,ptr,value) {
-		Set tSC = ..CleanNamespace(value, ..MessageAgeLimit, .inboxCleared, .processedCleared)
+		Set tSC = ..CleanNamespace(value, ..MessageAgeLimit, .inboxCleared, .processedCleared, .flowResultCleared)
         
         If $$$ISERR(tSC) {
             $$$LOGWARNING($$$FormatText("Purge failed for namespace '%1'. %2", value, $SYSTEM.Status.GetErrorText(tSC)))
         } Else {
-            $$$LOGINFO($$$FormatText("Purge completed for namespace '%1'. Inbox cleared: %2, Processed cleared: %3", value, inboxCleared, processedCleared))
+            $$$LOGINFO($$$FormatText("Purge completed for namespace '%1'. Inbox cleared: %2, Processed cleared: %3, FlowResult cleared: %4", value, inboxCleared, processedCleared, flowResultCleared))
         }	
 	}
 
     Return $$$OK
 }
 
-Method CleanNamespace(target As %String, limit As %Integer, Output inboxCleared As %Integer, Output processedCleared As %Integer) As %Status
+Method CleanNamespace(target As %String, limit As %Integer, Output inboxCleared As %Integer, Output processedCleared As %Integer, Output flowResultCleared As %Integer) As %Status
 {
     New $NAMESPACE
     Set $NAMESPACE = target
 
     Return:'##class(%Dictionary.ClassDefinition).%Exists($LISTBUILD("Broker.Storage.Inbox")) $$$ERROR($$$GeneralError, "Class Broker.Storage.Inbox does not exist")
     Return:'##class(%Dictionary.ClassDefinition).%Exists($LISTBUILD("Broker.Storage.Processed")) $$$ERROR($$$GeneralError, "Class Broker.Storage.Processed does not exist")
+    Return:'##class(%Dictionary.ClassDefinition).%Exists($LISTBUILD("Broker.Storage.FlowResult")) $$$ERROR($$$GeneralError, "Class Broker.Storage.FlowResult does not exist")
 
     Set tSC = ..PurgeInbox(limit, .inboxCleared)
     Return:$$$ISERR(tSC) tSC
     Set tSC = ..PurgeProcessed(limit, .processedCleared)
+    Return:$$$ISERR(tSC) tSC
+    Set tSC = ..PurgeFlowResult(limit, .flowResultCleared)
+    Return:$$$ISERR(tSC) tSC
 
-    Return tSC
+    Return $$$OK
 }
 
 Method PurgeInbox(limit As %Integer, Output cleared As %Integer) As %Status
@@ -67,6 +71,17 @@ Method PurgeProcessed(limit As %Integer, Output cleared As %Integer) As %Status
     Return $$$OK
 }
 
+Method PurgeFlowResult(limit As %Integer, Output cleared As %Integer) As %Status
+{
+    Set SQLCODE = 0
+    New %ROWCOUNT, %msg
+    &sql(delete Broker_Storage.FlowResult where UpdatedAt < {fn TIMESTAMPADD(SQL_TSI_HOUR,-:limit,CURRENT_TIMESTAMP)})
+    Return:(SQLCODE<0) $$$ERROR($$$GeneralError, $$$FormatText("PurgeFlowResult failed (SQLCODE = %1): %2", SQLCODE, %msg))
+    
+    Set cleared = %ROWCOUNT
+    Return $$$OK
+}
+
 Storage Default
 {
 <Data name="PurgeDefaultData">
@@ -75,9 +90,6 @@ Storage Default
 <Value>Namespaces</Value>
 </Value>
 <Value name="2">
-<Value>AgeLimit</Value>
-</Value>
-<Value name="3">
 <Value>MessageAgeLimit</Value>
 </Value>
 </Data>

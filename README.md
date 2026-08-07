@@ -8,8 +8,21 @@ This project is a try to implement some typical ESB features on the InterSystems
 5. Centralized monitoring and alerting control
 # What's new
 
+#### Aug 07
+In real cases of integration, we have not only message consumers. Synchronous flows consisting of several steps (receiving data from system A, enriching it from system B, and transmitting it to system C with processing of the response, of course) are a big part of enterprise integration. These data flows should be covered by monitoring too. 
+
+Exactly for these cases was added a `Broker.Process.MetricsCollectorSync` class. All you need is to put this class to `Extention` section of your business process and replace `SendRequestSync()` calls with `SendRequestSyncDecorator()`. ESB will do the rest itself. In addition, support for multiple namespaces has been added to the monitoring sub-system. 
+
+You can check the sensors work at: `http://localhost:9092/api/monitor/metrics`
+
+Do not forget to register ESB custom sensors:
+```
+zn "%SYS"
+do ##class(SYS.Monitor.SAM.Config).AddApplicationClass("Broker.Monitor.Metrics", "ESB")
+```
+
 #### Jun 30
-In integrations, we often need to prevent sending the same data twice. To solve this issue, was added methods:
+We often need to prevent sending the same data twice. To solve this issue, was added methods:
 
 - `SetCheckpoint()` - you can choose a storage global and its dimensions. For example, we need to prevent the double processing of the same customer order statuses. So, we have two dimensions: order number + order status, saving will look like: `..SetCheckpoint(globalName, someAdditionalInfo, request.OrderId, request.OrderStatus)`
 

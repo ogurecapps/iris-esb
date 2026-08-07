@@ -1,4 +1,4 @@
-Class Broker.Storage.Performance Extends %Persistent
+Class Broker.Storage.Performance Extends (%Persistent, Broker.Util.Other)
 {
 
 Property InboxId As %String [ Required ];
@@ -29,8 +29,7 @@ ClassMethod OnRequest(inboxId As %String, consumerName As %String) As %Status
     Set sc = ..DropMeasurement(inboxId, consumerName) // For resend message case
     Return:$$$ISERR(sc) sc
 
-    Set h = $NOW()
-    Set createdMs = ($PIECE(h,",",1) * 86400 + $PIECE(h,",",2)) * 1000
+    Set createdMs = ..NowMs()
 
     &sql(insert Broker_Storage.Performance 
         set 
@@ -45,12 +44,11 @@ ClassMethod OnRequest(inboxId As %String, consumerName As %String) As %Status
 
 ClassMethod OnResponse(inboxId As %String, consumerName As %String) As %Status
 {
-    Set h = $NOW()
-    Set createdMs = ($PIECE(h,",",1) * 86400 + $PIECE(h,",",2)) * 1000
+    Set processedMs = ..NowMs()
 
     &sql(update Broker_Storage.Performance 
         set 
-            ProcessedMs = :createdMs
+            ProcessedMs = :processedMs
         where
             InboxId = :inboxId and 
             ConsumerName = :consumerName)
