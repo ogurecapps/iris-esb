@@ -38,8 +38,8 @@ Added more ways for error handling. You can choose a strategy that suits you bes
 RetryCount = MessageLifetime / CallInterval
 ```
 - `AllMessages` (by default) means "At-least once" guarantee type, the broker will attempt to deliver the message until it receives a successful response, or until the message expires. A single business service handles both types of messages: re-delivery of failed messages and sending new ones
-<br><br>
 
+# Overview
 The project contains three main modules (three packages). Let us take a look at them:
 ## Message Broker (Broker.* package)
 Message Broker is designed to keep messages and create separate message consumers, each of which can be independently subscribed to a message queue. It means all consumers have their own inbound queue by message type (not literally). Messages have statuses: `NEW`, `PENDING` (processing in progress), `ERROR`, and `OK` (message successfully processed). The main function of this Message Broker is to guarantee the delivery of messages. The message will be resending again and again until one of two events happens: successful message processing or the end of message lifetime (message expired).
@@ -123,7 +123,7 @@ These metrics are published via API (see `GET http://localhost:9092/api/monitor/
 - `http://localhost:9090` - Prometheus
 - `http://localhost:3000` - Grafana
 
-Added custom metrics have a tag `esb_broker`.
+Added custom metrics have a tag `esb`.
 
 ## Util.* package
 Also, I added the util package to the project. Inside, just a couple of universal runners for running different things in Production. See [details](https://community.intersystems.com/post/how-run-process-interval-or-schedule). They are frequently used as initiators for dataflows in real projects.
