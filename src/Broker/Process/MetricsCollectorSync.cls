@@ -17,6 +17,17 @@ Method SendRequestSyncDecorator(pTargetDispatchName As %String, pRequest As %Lib
     Return tSC
 }
 
+/// For manually increasing the metric
+/// For example, you got an $$$OK status, but the response message contains an error
+/// startMs = 0 - performance data is not collected 
+Method MetricHit(target As %String, status As %Status, startMs As %Integer = 0)
+{
+    Set tSC = ##class(Broker.Storage.FlowResult).Hit($CLASSNAME(), target, ..%SessionId, status, startMs)
+    If $$$ISERR(tSC) {
+        $$$LOGWARNING($SYSTEM.Status.GetErrorText(tSC))
+    }
+}
+
 Storage Default
 {
 <Type>%Storage.Persistent</Type>

@@ -27,12 +27,12 @@ Index UpdatedAtIdx On UpdatedAt;
 Index SourceSuccessIdx On (Source, Success);
 
 Index SourceTargetDurationIdx On (Source, Target, DurationMs);
-
-ClassMethod Hit(source As %String, target As %String, sessionId As %String, status As %Status, startMs As %Integer) As %Status
+ 
+ClassMethod Hit(source As %String, target As %String, sessionId As %String, status As %Status, startMs As %Integer = 0) As %Status
 {
     Set success = $$$ISOK(status)
     Set failDetails = $SYSTEM.Status.GetErrorText(status)
-    Set durationMs = ..NowMs() - startMs
+    Set durationMs = $SELECT(startMs = 0:0, 1:..NowMs() - startMs)
 
     &sql(insert Broker_Storage.FlowResult set 
     	Source = :source, 
