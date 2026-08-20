@@ -9,7 +9,7 @@ Method SendRequestSyncDecorator(pTargetDispatchName As %String, pRequest As %Lib
     Set startMs = ..NowMs()
     Set tSC = ..SendRequestSync(pTargetDispatchName, pRequest, .pResponse, pTimeout, pDescription)
     
-    Set sc = ##class(Broker.Storage.FlowResult).Hit($CLASSNAME(), pTargetDispatchName, ..%SessionId, tSC, startMs)
+    Set sc = ##class(Broker.Storage.FlowResult).Hit(..%ConfigName, pTargetDispatchName, ..%SessionId, tSC, startMs)
     If $$$ISERR(sc) {
         $$$LOGWARNING($SYSTEM.Status.GetErrorText(sc))
     }
@@ -22,7 +22,7 @@ Method SendRequestSyncDecorator(pTargetDispatchName As %String, pRequest As %Lib
 /// startMs = 0 - performance data is not collected 
 Method MetricHit(target As %String, status As %Status, startMs As %Integer = 0)
 {
-    Set tSC = ##class(Broker.Storage.FlowResult).Hit($CLASSNAME(), target, ..%SessionId, status, startMs)
+    Set tSC = ##class(Broker.Storage.FlowResult).Hit(..%ConfigName, target, ..%SessionId, status, startMs)
     If $$$ISERR(tSC) {
         $$$LOGWARNING($SYSTEM.Status.GetErrorText(tSC))
     }
