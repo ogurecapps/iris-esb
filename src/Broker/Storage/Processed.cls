@@ -9,7 +9,7 @@ Property InboxId As %String [ Required ];
 Property ConsumerName As %String(MAXLEN = 100) [ Required ];
 
 /// For scheduled cleanup
-Property UpdatedAt As %TimeStamp [ InitialExpression = {$ZDATETIME($HOROLOG, 3)}, Required ];
+Property UpdatedAt As %TimeStamp [ Required, SqlComputeCode = { Set {*} = $ZDATETIME($NOW(), 3) }, SqlComputed, SqlComputeOnChange = (%%INSERT, %%UPDATE) ];
 
 /// Current status of message
 Property Status As %String(VALUELIST = ",OK,ERROR,PENDING") [ Required ];
@@ -43,13 +43,38 @@ ClassMethod SetMessageStatus(inboxId As %String, consumerName As %String, sessio
     Return $$$OK
 }
 
-ClassMethod ClearPending(Output cleared As %Integer) As %Status
+/// Drop PENDING marks OnStart() the Production.
+/// Marks of messages whose Interoperability session still has Queued messages are kept:
+/// the Production redelivers them after restart, finishes the session itself and sets OK/ERROR,
+/// so re-reading them from the Inbox would produce duplicates in the consumer system
+ClassMethod ClearPending(Output cleared As %Integer, Output kept As %Integer) As %Status
 {
     New %ROWCOUNT
-    &sql(delete from Broker_Storage.Processed where Status = 'PENDING')
+    Set cleared = 0, kept = 0
+
+    &sql(select count(*) into :pending from Broker_Storage.Processed where Status = 'PENDING')
     Return:($GET(SQLCODE,0)<0) $$$ERROR($$$GeneralError, $$$FormatText("ClearPending failed. SQLCODE = %1: %2", SQLCODE, $SYSTEM.SQL.Functions.SQLCODE(SQLCODE)))
-    
+
+    &sql(delete from Broker_Storage.Processed p
+        where p.Status = 'PENDING'
+            and not exists (
+                select 1
+                from Ens.MessageHeader h
+                    join Broker_Message.InboxRequest r on r.ID = h.MessageBodyId
+                where h.MessageBodyClassName = 'Broker.Message.InboxRequest'
+                    and r.InboxId = p.InboxId
+                    and r.MessageHandler = p.ConsumerName
+                    and h.SessionId in (
+                        select h2.SessionId
+                        from Ens.MessageHeader h2
+                        where h2.Status = 2 /* Queued */
+                    )
+            ))
+    Return:($GET(SQLCODE,0)<0) $$$ERROR($$$GeneralError, $$$FormatText("ClearPending failed. SQLCODE = %1: %2", SQLCODE, $SYSTEM.SQL.Functions.SQLCODE(SQLCODE)))
+
     Set cleared = %ROWCOUNT
+    Set kept = $GET(pending, 0) - cleared
+    
     Return $$$OK
 }
 

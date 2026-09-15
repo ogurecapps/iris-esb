@@ -25,7 +25,12 @@ Method OnProcessInput(pInput As Broker.Storage.Inbox, Output pOutput As %Registe
     Set tSC = ##class(Broker.Storage.Processed).SetMessageStatus(request.InboxId, request.MessageHandler, ..%SessionId, ..#PENDING)
     Return:$$$ISERR(tSC) tSC
 
-    Return ..SendRequestAsync(..MessageRouter, request)
+    Set tSC = ..SendRequestAsync(..MessageRouter, request)
+    If $$$ISERR(tSC) {
+        Set tSC = ##class(Broker.Storage.Processed).SetMessageStatus(request.InboxId, request.MessageHandler, ..%SessionId, ..#ERROR, $SYSTEM.Status.GetErrorText(tSC))
+    }
+    
+    Return tSC
 }
 
 ClassMethod OnGetConnections(Output pArray As %String, pItem As Ens.Config.Item)
