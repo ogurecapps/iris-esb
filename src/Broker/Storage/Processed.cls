@@ -22,11 +22,9 @@ Property SessionId As %String;
 
 Index ConsumerNameInboxKey On (ConsumerName, InboxId) [ Unique ];
 
-Index ConsumerNameInboxIdx On (ConsumerName, InboxId) [ Type = bitmap ];
-
 Index UpdatedAtIdx On UpdatedAt;
 
-Index StatusIdx On Status;
+Index StatusIdx On Status [ Type = bitmap ];
 
 /// Mark the message as processed
 ClassMethod SetMessageStatus(inboxId As %String, consumerName As %String, sessionId As %String, status As %String, statusDetails As %String = "") As %Status
@@ -55,21 +53,10 @@ ClassMethod ClearPending(Output cleared As %Integer, Output kept As %Integer) As
     &sql(select count(*) into :pending from Broker_Storage.Processed where Status = 'PENDING')
     Return:($GET(SQLCODE,0)<0) $$$ERROR($$$GeneralError, $$$FormatText("ClearPending failed. SQLCODE = %1: %2", SQLCODE, $SYSTEM.SQL.Functions.SQLCODE(SQLCODE)))
 
-    &sql(delete from Broker_Storage.Processed p
-        where p.Status = 'PENDING'
-            and not exists (
-                select 1
-                from Ens.MessageHeader h
-                    join Broker_Message.InboxRequest r on r.ID = h.MessageBodyId
-                where h.MessageBodyClassName = 'Broker.Message.InboxRequest'
-                    and r.InboxId = p.InboxId
-                    and r.MessageHandler = p.ConsumerName
-                    and h.SessionId in (
-                        select h2.SessionId
-                        from Ens.MessageHeader h2
-                        where h2.Status = 2 /* Queued */
-                    )
-            ))
+    &sql(delete from Broker_Storage.Processed p where p.Status = 'PENDING'
+        and not exists (
+            select 1 from Ens.MessageHeader h
+                where h.SessionId = p.SessionId and h.Status = 2 /* Queued */))
     Return:($GET(SQLCODE,0)<0) $$$ERROR($$$GeneralError, $$$FormatText("ClearPending failed. SQLCODE = %1: %2", SQLCODE, $SYSTEM.SQL.Functions.SQLCODE(SQLCODE)))
 
     Set cleared = %ROWCOUNT

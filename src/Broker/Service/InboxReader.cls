@@ -22,6 +22,9 @@ Method OnProcessInput(pInput As Broker.Storage.Inbox, Output pOutput As %Registe
     Set request.PayloadType = pInput.PayloadType
     Set request.MessageHandler = ..Adapter.MessageHandler
     
+    Set tSC = ..ForceSessionId()
+    Return:$$$ISERR(tSC) tSC
+
     Set tSC = ##class(Broker.Storage.Processed).SetMessageStatus(request.InboxId, request.MessageHandler, ..%SessionId, ..#PENDING)
     Return:$$$ISERR(tSC) tSC
 
