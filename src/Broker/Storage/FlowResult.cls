@@ -24,10 +24,11 @@ Property DurationMs As %Integer [ Required ];
 
 Index UpdatedAtIdx On UpdatedAt;
 
-Index SourceSuccessIdx On (Source, Success);
+Index SourceSuccessBmp On (Source As EXACT, Success) [ Type = bitmap ];
 
-Index SourceTargetDurationIdx On (Source, Target, DurationMs);
- 
+Index SourceTargetDurationIdx On (Source As EXACT, Target As EXACT, DurationMs);
+
+/// startMs = 0 - performance data is not collected 
 ClassMethod Hit(source As %String, target As %String, sessionId As %String, status As %Status, startMs As %Integer = 0) As %Status
 {
     Set success = $$$ISOK(status)

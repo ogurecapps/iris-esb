@@ -26,6 +26,8 @@ Index UpdatedAtIdx On UpdatedAt;
 
 Index StatusIdx On Status [ Type = bitmap ];
 
+Index ConsumerStatusBmp On (ConsumerName As EXACT, Status As EXACT) [ Type = bitmap ];
+
 /// Mark the message as processed
 ClassMethod SetMessageStatus(inboxId As %String, consumerName As %String, sessionId As %String, status As %String, statusDetails As %String = "") As %Status
 {

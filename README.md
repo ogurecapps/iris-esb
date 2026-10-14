@@ -8,6 +8,9 @@ This project is a try to implement some typical ESB features on the InterSystems
 5. Centralized monitoring and alerting control
 # What's new
 
+#### Oct 14
+Optimizing metrics collection, some indices added, some code changed. If you have already used a previous version of IRIS ESB, please rebuild the index: `Do ##class(Broker.Monitor.Metrics).RebuildIndices()`
+
 #### Aug 07
 In real cases of integration, we have not only message consumers. Synchronous flows consisting of several steps (receiving data from system A, enriching it from system B, and transmitting it to system C with processing of the response, of course) are a big part of enterprise integration. These data flows should be covered by monitoring too. 
 

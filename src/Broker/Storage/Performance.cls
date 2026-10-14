@@ -13,7 +13,7 @@ Property ProcessedMs As %Integer;
 
 Index InboxIdConsumerNameKey On (InboxId, ConsumerName) [ Unique ];
 
-Index CreatedAtIdx On CreatedAt;
+Index CreatedAtIdx On CreatedAt [ Data = (ConsumerName, CreatedMs, ProcessedMs) ];
 
 ClassMethod DropMeasurement(inboxId As %String, consumerName As %String) As %Status
 {
